@@ -8,12 +8,15 @@ import tensorflow as tf
 
 PAD = "__PAD__"
 UNK = "__UNK__"
-DIM_EMBEDDING = 128
-LSTM_SIZES = [50]
-BATCH_SIZE = 1
-LEARNING_RATE = 0.1
-EPOCHS = 50
-KEEP_PROB = 0.99999
+DIM_EMBEDDING = 100
+LSTM_SIZES = [100] # based on NCRFpp (200 in the paper, but 100 per direction in code)
+BATCH_SIZE = 10
+LEARNING_RATE = 0.015
+LEARNING_DECAY_RATE = 0.05 # TODO apply
+EPOCHS = 100
+KEEP_PROB = 0.5
+
+# TODO: L2 regularization 1e-8
 
 def read_data(filename):
     """Example input:
@@ -63,11 +66,13 @@ def main():
                 tag_to_id[tag] = len(id_to_tag)
                 id_to_tag.append(tag)
 
+    # TODO: Read GloVe
+
     with tf.Graph().as_default():
         # Construct computation graph
         e_input = tf.placeholder(tf.int32, [None, None], name='input')
         e_lengths = tf.placeholder(tf.int32, [None], name='lengths')
-        e_weights = tf.placeholder(tf.int32, [None, None], name='weights')
+        e_mask = tf.placeholder(tf.int32, [None, None], name='mask')
         e_gold_output = tf.placeholder(tf.int32, [None, None], name='gold_output')
         e_keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
@@ -84,7 +89,7 @@ def main():
                 variational_recurrent=True, dtype=tf.float32,
                 input_size=DIM_EMBEDDING)
 
-        # todo tf.nn.bidirectional_dynamic_rnn
+        # TODO tf.nn.bidirectional_dynamic_rnn
         initial_state = e_cell.zero_state(BATCH_SIZE, dtype=tf.float32)
         e_lstm_outputs, e_final_state = tf.nn.dynamic_rnn(e_cell, e_embed,
                 initial_state=initial_state,
@@ -93,7 +98,7 @@ def main():
         e_predictions = tf.contrib.layers.fully_connected(e_lstm_outputs,
                 len(id_to_tag), activation_fn=None)
         e_loss = tf.losses.sparse_softmax_cross_entropy(e_gold_output,
-                e_predictions, weights=e_weights)
+                e_predictions, weights=e_mask)
 ###        e_train = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(e_loss)
         e_optimiser = tf.train.GradientDescentOptimizer(LEARNING_RATE)
         e_gradients = e_optimiser.compute_gradients(e_loss)
@@ -110,7 +115,7 @@ def main():
             e_lengths,
             e_loss,
             e_train,
-            e_weights
+            e_mask
         ]
         
         # Use computation graph
@@ -141,7 +146,7 @@ def main():
 
 def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, session, train=False):
     # TODO: Fix so it doesn't miss the end (anything that is not a full batch)
-    e_auto_output, e_gold_output, e_input, e_keep_prob, e_lengths, e_loss, e_train, e_weights = expressions
+    e_auto_output, e_gold_output, e_input, e_keep_prob, e_lengths, e_loss, e_train, e_mask = expressions
     cur_keep_prob = KEEP_PROB
     if not train:
         cur_keep_prob = 1.0
@@ -150,16 +155,16 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, s
     total = 0
     start = 0
     while start + BATCH_SIZE < len(data):
-        batch = [v for v in data[start : start + BATCH_SIZE]]
+        batch = data[start : start + BATCH_SIZE]
         start += BATCH_SIZE
         max_length = max(len(v[0]) for v in batch)
         x = []
         y = []
         lengths = []
-        weights = []
+        mask = []
         for tokens, tags in batch:
             lengths.append(len(tokens))
-            weights.append(np.array(
+            mask.append(np.array(
                 [1.0] * len(tokens) +
                 [0.0] * (max_length - len(tokens)) ))
 
@@ -175,7 +180,7 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, s
         feed = {
                 e_input: np.array(x),
                 e_gold_output: np.array(y),
-                e_weights: np.array(weights),
+                e_mask: np.array(mask),
                 e_keep_prob: cur_keep_prob,
                 e_lengths: np.array(lengths)
         }

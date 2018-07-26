@@ -2,18 +2,26 @@
 
 import argparse
 import random
+import sys
 
 import numpy as np
-import dynet as dy
+
+import dynet_config
+dynet_config.set(mem=2048, autobatch=1, weight_decay=1e-8)
+
+import dynet as dy 
+
 
 PAD = "__PAD__"
 UNK = "__UNK__"
-DIM_EMBEDDING = 128
-LSTM_SIZES = [50]
-BATCH_SIZE = 1
-LEARNING_RATE = 0.1
-EPOCHS = 50
+DIM_EMBEDDING = 100
+LSTM_SIZES = [100] # based on NCRFpp (200 in the paper, but 100 per direction in code)
+BATCH_SIZE = 10
+LEARNING_RATE = 0.015
+LEARNING_DECAY_RATE = 0.05
+EPOCHS = 100
 KEEP_PROB = 0.5
+GLOVE = "../data/glove.6B.100d.txt"
 
 def read_data(filename):
     """Example input:
@@ -63,18 +71,42 @@ def main():
                 tag_to_id[tag] = len(id_to_tag)
                 id_to_tag.append(tag)
 
+    # Load pre-trained vectors
+    pretrained = {}
+    for line in open(GLOVE):
+        parts = line.strip().split()
+        word = parts[0]
+        if word in token_to_id:
+            vector = np.array([float(v) for v in parts[1:]])
+            pretrained[word] = vector
+            if word not in token_to_id:
+                token_to_id[token] = len(id_to_token)
+                id_to_token.append(token)
+
     NWORDS = len(id_to_token)
     NTAGS = len(id_to_tag)
 
     model = dy.Model()
-    trainer = dy.SimpleSGDTrainer(model, learning_rate=0.1)
+    trainer = dy.SimpleSGDTrainer(model, learning_rate=LEARNING_RATE)
     pEmbedding = model.add_lookup_parameters((NWORDS, DIM_EMBEDDING))
-    lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_SIZES[0], model)
-    pOutput = model.add_parameters((NTAGS, LSTM_SIZES[0]))
-    expressions = (pEmbedding, pOutput, lstm, trainer)
+    f_lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_SIZES[0], model)
+    b_lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_SIZES[0], model)
+    pOutput = model.add_parameters((NTAGS, 2 * LSTM_SIZES[0]))
+    expressions = (pEmbedding, pOutput, f_lstm, b_lstm, trainer)
+
+    pretrained_array = []
+    for word in id_to_token:
+        if word in pretrained:
+            pretrained_array.append(pretrained[word])
+        elif word.lower() in pretrained:
+            pretrained_array.append(pretrained[word.lower()])
+        else:
+            pretrained_array.append(pEmbedding.row_as_array(token_to_id[word]))
+    pEmbedding.init_from_array(np.array(pretrained_array))
 
     for epoch_no in range(EPOCHS):
         random.shuffle(train)
+        trainer.learning_rate = LEARNING_RATE / (1 + LEARNING_DECAY_RATE * epoch_no)
 
         # do iteration
         train_loss, train_total, train_match = do_pass(train, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, True)
@@ -90,16 +122,20 @@ def main():
     print("Test Accuracy: {:.3f}".format(test_match / test_total))
 
 def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, train=False):
-    pEmbedding, pOutput, lstm, trainer = expressions
+    pEmbedding, pOutput, f_lstm, b_lstm, trainer = expressions
 
     loss = 0
     match = 0
     total = 0
     start = 0
     while start + BATCH_SIZE < len(data):
-        batch = [v for v in data[start : start + BATCH_SIZE]]
+        batch = data[start : start + BATCH_SIZE]
         start += BATCH_SIZE
+        if start % 4000 == 0:
+            print(start, loss, match / total)
+            sys.stdout.flush()
 
+        dy.renew_cg()
         errs = []
         predicted = []
         for tokens, tags in batch:
@@ -108,19 +144,22 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
             tag_ids = [tag_to_id[t] for t in tags]
 
             # Decode and update
-            dy.renew_cg()
-
             if train and KEEP_PROB < 1.0:
-                lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
+                f_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
+                b_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
 
-            f_init = lstm.initial_state()
+            f_init = f_lstm.initial_state()
+            b_init = b_lstm.initial_state()
             wembs = [dy.lookup(pEmbedding, w) for w in token_ids]
-            lstm_output = [x.output() for x in f_init.add_inputs(wembs)]
+            f_lstm_output = [x.output() for x in f_init.add_inputs(wembs)]
+            b_lstm_output = [x.output() for x in b_init.add_inputs(reversed(wembs))]
+
             O = dy.parameter(pOutput)
 
             pred_tags = []
-            for f, t in zip(lstm_output, tag_ids):
-                r_t = O * f
+            for f, b, t in zip(f_lstm_output, b_lstm_output, tag_ids):
+                combined = dy.concatenate([f,b])
+                r_t = O * combined
                 if train:
                     err = dy.pickneglogsoftmax(r_t, t)
                     errs.append(err)

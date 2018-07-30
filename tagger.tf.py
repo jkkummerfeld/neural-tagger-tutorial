@@ -171,7 +171,7 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, s
             tokens += [PAD] * (max_length - len(tokens))
             tags += [PAD] * (max_length - len(tags))
 
-            tokens = [token_to_id.get(t, token_to_id[UNK]) for t in tokens]
+            tokens = [token_to_id.get(simplify_token(t), token_to_id[UNK]) for t in tokens]
             tags = [tag_to_id[t] for t in tags]
 
             x.append(np.array(tokens))

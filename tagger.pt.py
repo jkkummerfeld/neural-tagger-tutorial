@@ -20,6 +20,11 @@ KEEP_PROB = 0.5
 GLOVE = "../data/glove.6B.100d.txt"
 WEIGHT_DECAY = 1e-8
 
+seed_num = 42
+random.seed(seed_num)
+torch.manual_seed(seed_num)
+np.random.seed(seed_num)
+
 def read_data(filename):
     """Example input:
     Pierre|NNP Vinken|NNP ,|, 61|CD years|NNS old|JJ ,|, will|MD join|VB the|DT board|NN as|IN a|DT nonexecutive|JJ director|NN Nov.|NNP 29|CD .|.
@@ -54,10 +59,11 @@ def main():
 
     # Make indices
     id_to_token = [PAD, UNK]
-    token_to_id = {PAD: 0, UNK:1}
+    token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train:
+    for tokens, tags in train + dev:
+###    for tokens, tags in train:
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
@@ -73,9 +79,8 @@ def main():
     for line in open(GLOVE):
         parts = line.strip().split()
         word = parts[0]
-        if word in token_to_id:
-            vector = [float(v) for v in parts[1:]]
-            pretrained[word] = vector
+        vector = [float(v) for v in parts[1:]]
+        pretrained[word] = vector
 
     NWORDS = len(id_to_token)
     NTAGS = len(id_to_tag)
@@ -96,7 +101,7 @@ def main():
         train_loss, train_total, train_match = do_pass(train, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, True)
 
         model.eval() # Set in evaluation mode, which disables dropout components (for example)
-        _, dev_total, dev_match = do_pass(dev, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions)
+        _, dev_total, dev_match = do_pass(dev, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, False)
 
         print("epoch {} t-loss {} t-acc {} d-acc {}".format(epoch_no, train_loss, train_match / train_total, dev_match / dev_total))
 
@@ -123,6 +128,7 @@ class TaggerModel(torch.nn.Module):
                 pretrained_list.append(np.random.uniform(-scale, scale, [DIM_EMBEDDING]))
         pretrained_tensor = torch.FloatTensor(pretrained_list)
         self.word_embedding = torch.nn.Embedding.from_pretrained(pretrained_tensor, freeze=False)# , sparse=True) Doesn't work?
+
         self.word_dropout = torch.nn.Dropout(1 - KEEP_PROB)
 
         self.lstm = torch.nn.LSTM(DIM_EMBEDDING, LSTM_SIZES[0], num_layers=1, batch_first=True, bidirectional=True)
@@ -131,41 +137,39 @@ class TaggerModel(torch.nn.Module):
 
         self.hidden_to_tag = torch.nn.Linear(LSTM_SIZES[-1] * 2, ntags)
 
-    def forward(self, sentences, labels, lengths, masks):
-        max_length = len(sentences[0])
+    def forward(self, sentences, labels, lengths, cur_batch_size):
+        max_length = sentences.size(1)
 
         # Look up word vectors
-        word_vectors =  self.word_embedding(sentences)
+        word_vectors = self.word_embedding(sentences)
         # Apply dropout
-        word_vectors = self.word_dropout(word_vectors)
+        dropped_word_vectors = self.word_dropout(word_vectors)
 
         # Assuming the data is ordered longest to shortest, this provides a view of the data that fits with how cuDNN works
-        packed_words = torch.nn.utils.rnn.pack_sequence(word_vectors)
+###        packed_words = torch.nn.utils.rnn.pack_sequence(dropped_word_vectors)
+        packed_words = torch.nn.utils.rnn.pack_padded_sequence(dropped_word_vectors, lengths, True)
         # Run the LSTM over the input
         lstm_out, _ = self.lstm(packed_words, None)
         # Reverse the view shift made for cuDNN
-        lstm_out, _ = torch.nn.utils.rnn.pad_packed_sequence(lstm_out, batch_first=True, total_length=max_length)
+        lstm_out, _ = torch.nn.utils.rnn.pad_packed_sequence(lstm_out, batch_first=True, total_length=max_length) # Specifying total_length is not necessary in general (it can be inferred), but is important for parallel processing
         # Apply dropout to the output
         lstm_out_dropped = self.lstm_output_dropout(lstm_out)
         # Matrix multiply to get distribution over tags
         output_scores = self.hidden_to_tag(lstm_out_dropped)
 
         # Reshape to [batch size * sequence length, ntags] for more efficient processing
-        output_scores = output_scores.view(BATCH_SIZE * max_length, -1)
-        flat_labels = labels.view(BATCH_SIZE * max_length)
+        output_scores = output_scores.view(cur_batch_size * max_length, -1)
+        flat_labels = labels.view(cur_batch_size * max_length)
         # Calculate the cross entropy loss, ignoring padding, and summing losses across the batch
         loss_function = torch.nn.CrossEntropyLoss(ignore_index=0, reduction='sum')
         loss = loss_function(output_scores, flat_labels)
         # Identify the highest scoring tag in each case and reshape to be [batch, sequence]
         _, predicted_tags  = torch.max(output_scores, 1)
-        predicted_tags = predicted_tags.view(BATCH_SIZE, max_length)
+        predicted_tags = predicted_tags.view(cur_batch_size, max_length)
         return loss, predicted_tags
 
-def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, train=False):
+def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, train):
     model, optimizer = expressions
-    cur_keep_prob = KEEP_PROB
-    if not train:
-        cur_keep_prob = 1.0
     loss = 0
     match = 0
     total = 0
@@ -173,33 +177,25 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
     while start < len(data):
         batch = data[start : min(start + BATCH_SIZE, len(data))]
         batch.sort(key = lambda x: -len(x[0]))
+        cur_batch_size = len(batch)
         start += BATCH_SIZE
+        if start % 4000 == 0:
+            print(loss, match / total)
+
         max_length = len(batch[0][0])
-        x = []
-        y = []
-        lengths = []
-        mask = []
-        for tokens, tags in batch:
-            lengths.append(len(tokens))
-            mask.append(
-                [1.0] * len(tokens) +
-                [0.0] * (max_length - len(tokens)) )
-
-            tokens += [PAD] * (max_length - len(tokens))
-            tags += [PAD] * (max_length - len(tags))
-
-            tokens = [token_to_id.get(t, token_to_id[UNK]) for t in tokens]
+        lengths = [len(v[0]) for v in batch]
+        xt = torch.zeros((cur_batch_size, max_length)).long() # .long() casts the type from Tensor to LongTensor
+        yt = torch.zeros((cur_batch_size, max_length)).long()
+        for n, (tokens, tags) in enumerate(batch):
+            # This caused initalisation errors... unable to work out why
+###            tokens += [PAD] * (max_length - len(tokens))
+###            tags += [PAD] * (max_length - len(tags))
+            tokens = [token_to_id.get(simplify_token(t), token_to_id[UNK]) for t in tokens]
             tags = [tag_to_id[t] for t in tags]
+            xt[n, :len(tokens)] = torch.LongTensor(tokens)
+            yt[n, :len(tags)] = torch.LongTensor(tags)
 
-            x.append(tokens)
-            y.append(tags)
-
-        xt = torch.tensor(x)
-        yt = torch.tensor(y)
-###        lengths = torch.tensor(lengths)
-###        mask = torch.tensor(mask)
-
-        batch_loss, output = model(xt, yt, lengths, mask)
+        batch_loss, output = model(xt, yt, lengths, cur_batch_size)
 
         if train:
             batch_loss.backward()
@@ -208,9 +204,10 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
             loss += batch_loss.item()
         auto = output.cpu().data.numpy()
 
-        for g, a, words in zip(y, auto, x):
+        for (_, g), a in zip(batch, auto):
+            g = [tag_to_id[t] for t in g]
             for gt, at in zip(g, a):
-                if gt != PAD:
+                if gt != 0:
                     total += 1
                     if gt == at:
                         match += 1

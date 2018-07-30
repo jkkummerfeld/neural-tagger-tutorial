@@ -60,7 +60,7 @@ def main():
     token_to_id = {PAD: 0, UNK:1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train:
+    for tokens, tags in train + dev:
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
@@ -140,19 +140,23 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
         predicted = []
         for tokens, tags in batch:
             # Convert to indices
-            token_ids = [token_to_id.get(t, token_to_id[UNK]) for t in tokens]
+            token_ids = [token_to_id.get(simplify_token(t), token_to_id[UNK]) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
 
             # Decode and update
-            if train and KEEP_PROB < 1.0:
-                f_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
-                b_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
-
+###            if train and KEEP_PROB < 1.0: # Setting recurrent dropout
+###                f_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
+###                b_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
             f_init = f_lstm.initial_state()
             b_init = b_lstm.initial_state()
             wembs = [dy.lookup(pEmbedding, w) for w in token_ids]
+            if train:
+                wembs = [dy.dropout(w, 1.0 - KEEP_PROB) for w in wembs]
             f_lstm_output = [x.output() for x in f_init.add_inputs(wembs)]
             b_lstm_output = [x.output() for x in b_init.add_inputs(reversed(wembs))]
+            if train:
+                f_lstm_output = [dy.dropout(h, 1.0 - KEEP_PROB) for h in f_lstm_output]
+                b_lstm_output = [dy.dropout(h, 1.0 - KEEP_PROB) for h in b_lstm_output]
 
             O = dy.parameter(pOutput)
 

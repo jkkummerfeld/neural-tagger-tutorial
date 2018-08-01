@@ -125,8 +125,7 @@ class TaggerModel(torch.nn.Module):
         self.word_embedding = torch.nn.Embedding.from_pretrained(pretrained_tensor, freeze=False)# , sparse=True) Doesn't work?
         self.word_dropout = torch.nn.Dropout(1 - KEEP_PROB)
 
-        self.lstm = torch.nn.LSTM(DIM_EMBEDDING, LSTM_SIZES[0] *2, num_layers=1, batch_first=True, bidirectional=False)
-###        self.lstm = torch.nn.LSTM(DIM_EMBEDDING, LSTM_SIZES[0], num_layers=1, batch_first=True, bidirectional=True)
+        self.lstm = torch.nn.LSTM(DIM_EMBEDDING, LSTM_SIZES[0], num_layers=1, batch_first=True, bidirectional=True)
         # TODO: How to do recurrent dropout?
         self.lstm_output_dropout = torch.nn.Dropout(1 - KEEP_PROB)
 

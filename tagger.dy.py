@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
+import math
 import random
 import sys
 
 import numpy as np
-
-import dynet_config
-dynet_config.set(mem=2048, autobatch=1, weight_decay=1e-8)
-
-import dynet as dy 
-
 
 PAD = "__PAD__"
 UNK = "__UNK__"
@@ -22,6 +17,11 @@ LEARNING_DECAY_RATE = 0.05
 EPOCHS = 100
 KEEP_PROB = 0.5
 GLOVE = "../data/glove.6B.100d.txt"
+WEIGHT_DECAY = 1e-8
+
+import dynet_config
+dynet_config.set(mem=256, autobatch=1, weight_decay=WEIGHT_DECAY,random_seed=0)
+import dynet as dy 
 
 def read_data(filename):
     """Example input:
@@ -57,10 +57,10 @@ def main():
 
     # Make indices
     id_to_token = [PAD, UNK]
-    token_to_id = {PAD: 0, UNK:1}
+    token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train + dev:
+    for tokens, tags in train:
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
@@ -76,37 +76,44 @@ def main():
     for line in open(GLOVE):
         parts = line.strip().split()
         word = parts[0]
-        if word in token_to_id:
-            vector = np.array([float(v) for v in parts[1:]])
-            pretrained[word] = vector
-            if word not in token_to_id:
-                token_to_id[token] = len(id_to_token)
-                id_to_token.append(token)
+        vector = [float(v) for v in parts[1:]]
+        pretrained[word] = vector
+    pretrained_list = []
+    scale = np.sqrt(3.0 / DIM_EMBEDDING) # From Jiang, Liang and Zhang
+    for word in id_to_token:
+        if word in pretrained:
+            pretrained_list.append(pretrained[word])
+        elif word.lower() in pretrained:
+            pretrained_list.append(pretrained[word.lower()])
+        else:
+            pretrained_list.append(np.random.uniform(-scale, scale, [DIM_EMBEDDING]))
 
     NWORDS = len(id_to_token)
     NTAGS = len(id_to_tag)
 
-    model = dy.Model()
+    model = dy.ParameterCollection()
     trainer = dy.SimpleSGDTrainer(model, learning_rate=LEARNING_RATE)
     pEmbedding = model.add_lookup_parameters((NWORDS, DIM_EMBEDDING))
-    f_lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_SIZES[0], model)
-    b_lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_SIZES[0], model)
+    pEmbedding.init_from_array(np.array(pretrained_list))
+
+    stdv = 1.0 / math.sqrt(LSTM_SIZES[0]) # Needed to match PyTorch
+    f_lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_SIZES[0], model, forget_bias=(random.random() - 0.5) * 2 *stdv)
+    f_lstm.get_parameters()[0][0].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0], DIM_EMBEDDING]))
+    f_lstm.get_parameters()[0][1].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0], LSTM_SIZES[0]]))
+    f_lstm.get_parameters()[0][2].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0]]))
+    b_lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_SIZES[0], model, forget_bias=(random.random() - 0.5) * 2 *stdv)
+    b_lstm.get_parameters()[0][0].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0], DIM_EMBEDDING]))
+    b_lstm.get_parameters()[0][1].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0], LSTM_SIZES[0]]))
+    b_lstm.get_parameters()[0][2].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0]]))
+    f_lstm.set_dropouts(0.0, 0.0)
+    b_lstm.set_dropouts(0.0, 0.0)
     pOutput = model.add_parameters((NTAGS, 2 * LSTM_SIZES[0]))
     expressions = (pEmbedding, pOutput, f_lstm, b_lstm, trainer)
 
-    pretrained_array = []
-    for word in id_to_token:
-        if word in pretrained:
-            pretrained_array.append(pretrained[word])
-        elif word.lower() in pretrained:
-            pretrained_array.append(pretrained[word.lower()])
-        else:
-            pretrained_array.append(pEmbedding.row_as_array(token_to_id[word]))
-    pEmbedding.init_from_array(np.array(pretrained_array))
-
     for epoch_no in range(EPOCHS):
         random.shuffle(train)
-        trainer.learning_rate = LEARNING_RATE / (1 + LEARNING_DECAY_RATE * epoch_no)
+        current_lr = LEARNING_RATE / (1 + LEARNING_DECAY_RATE * epoch_no)
+        trainer.learning_rate = current_lr
 
         # do iteration
         train_loss, train_total, train_match = do_pass(train, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, True)
@@ -128,17 +135,17 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
     match = 0
     total = 0
     start = 0
-    while start + BATCH_SIZE < len(data):
-        batch = data[start : start + BATCH_SIZE]
+    while start < len(data):
+        batch = data[start : min(start + BATCH_SIZE, len(data))]
+        batch.sort(key = lambda x: -len(x[0]))
         start += BATCH_SIZE
         if start % 4000 == 0:
-            print(start, loss, match / total)
-            sys.stdout.flush()
+            print(loss, match / total)
 
         dy.renew_cg()
         errs = []
         predicted = []
-        for tokens, tags in batch:
+        for n, (tokens, tags) in enumerate(batch):
             # Convert to indices
             token_ids = [token_to_id.get(simplify_token(t), token_to_id[UNK]) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
@@ -154,16 +161,14 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
                 wembs = [dy.dropout(w, 1.0 - KEEP_PROB) for w in wembs]
             f_lstm_output = [x.output() for x in f_init.add_inputs(wembs)]
             b_lstm_output = [x.output() for x in b_init.add_inputs(reversed(wembs))]
-            if train:
-                f_lstm_output = [dy.dropout(h, 1.0 - KEEP_PROB) for h in f_lstm_output]
-                b_lstm_output = [dy.dropout(h, 1.0 - KEEP_PROB) for h in b_lstm_output]
 
-            O = dy.parameter(pOutput)
-
+            output_matrix = dy.parameter(pOutput)
             pred_tags = []
             for f, b, t in zip(f_lstm_output, b_lstm_output, tag_ids):
                 combined = dy.concatenate([f,b])
-                r_t = O * combined
+                if train:
+                    combined = dy.dropout(combined, 1.0 - KEEP_PROB)
+                r_t = output_matrix * combined
                 if train:
                     err = dy.pickneglogsoftmax(r_t, t)
                     errs.append(err)

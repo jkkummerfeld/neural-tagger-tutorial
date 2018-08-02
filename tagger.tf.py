@@ -5,7 +5,6 @@ import random
 import sys
 
 import numpy as np
-import tensorflow as tf
 
 PAD = "__PAD__"
 UNK = "__UNK__"
@@ -18,6 +17,8 @@ EPOCHS = 100
 KEEP_PROB = 0.5
 GLOVE = "../data/glove.6B.100d.txt"
 WEIGHT_DECAY = 1e-8 # TODO apply as L2 regularization
+
+import tensorflow as tf
 
 def read_data(filename):
     """Example input:
@@ -56,7 +57,7 @@ def main():
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train + dev:
+    for tokens, tags in train + dev: # dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training.
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
@@ -66,6 +67,8 @@ def main():
             if tag not in tag_to_id:
                 tag_to_id[tag] = len(id_to_tag)
                 id_to_tag.append(tag)
+    NWORDS = len(id_to_token)
+    NTAGS = len(id_to_tag)
 
     # Load pre-trained vectors
     pretrained = {}
@@ -77,9 +80,7 @@ def main():
     pretrained_list = []
     scale = np.sqrt(3.0 / DIM_EMBEDDING) # From Jiang, Liang and Zhang
     for word in id_to_token:
-        if word in pretrained:
-            pretrained_list.append(np.array(pretrained[word]))
-        elif word.lower() in pretrained:
+        if word.lower() in pretrained: # applying lower() here because all GloVe vectors are for lowercase words
             pretrained_list.append(np.array(pretrained[word.lower()]))
         else:
             pretrained_list.append(np.random.uniform(-scale, scale, [DIM_EMBEDDING]))
@@ -180,6 +181,7 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, s
         start += BATCH_SIZE
         if start % 4000 == 0:
             print(loss, match / total)
+            sys.stdout.flush()
 
         max_length = len(batch[0][0])
         batch += [([], []) for _ in range(BATCH_SIZE - len(batch))] # Add empty sentences to fill in batch
@@ -191,7 +193,7 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, s
             token_ids = [token_to_id.get(simplify_token(t), token_to_id[UNK]) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
             input_array[n, :len(tokens)] = token_ids
-            output_array[n, :len(tokens)] = tag_ids
+            output_array[n, :len(tags)] = tag_ids
             mask[n, :len(tokens)] = np.ones([len(tokens)])
         cur_keep_prob = KEEP_PROB
         if not train:

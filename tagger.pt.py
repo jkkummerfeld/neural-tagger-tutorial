@@ -44,7 +44,7 @@ def simplify_token(token):
     return ''.join(chars)
 
 def main():
-    parser = argparse.ArgumentParser(description='Dynet tagger.')
+    parser = argparse.ArgumentParser(description='PyTorch tagger.')
     parser.add_argument('training_data')
     parser.add_argument('dev_data')
     args = parser.parse_args()
@@ -177,8 +177,8 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
         cur_batch_size = len(batch)
         max_length = len(batch[0][0])
         lengths = [len(v[0]) for v in batch]
-        xt = torch.zeros((cur_batch_size, max_length)).long() # .long() casts the type from Tensor to LongTensor
-        yt = torch.zeros((cur_batch_size, max_length)).long()
+        input_array = torch.zeros((cur_batch_size, max_length)).long() # .long() casts the type from Tensor to LongTensor
+        output_array = torch.zeros((cur_batch_size, max_length)).long()
         for n, (tokens, tags) in enumerate(batch):
             # This caused initalisation errors... unable to work out why
 ###            tokens += [PAD] * (max_length - len(tokens))
@@ -186,10 +186,10 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
             # Convert to indices
             token_ids = [token_to_id.get(simplify_token(t), token_to_id[UNK]) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
-            xt[n, :len(tokens)] = torch.LongTensor(token_ids)
-            yt[n, :len(tags)] = torch.LongTensor(tag_ids)
+            input_array[n, :len(tokens)] = torch.LongTensor(token_ids)
+            output_array[n, :len(tags)] = torch.LongTensor(tag_ids)
 
-        batch_loss, output = model(xt, yt, lengths, cur_batch_size)
+        batch_loss, output = model(input_array, output_array, lengths, cur_batch_size)
 
         if train:
             batch_loss.backward()

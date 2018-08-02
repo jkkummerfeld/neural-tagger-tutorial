@@ -70,6 +70,8 @@ def main():
             if tag not in tag_to_id:
                 tag_to_id[tag] = len(id_to_tag)
                 id_to_tag.append(tag)
+    NWORDS = len(id_to_token)
+    NTAGS = len(id_to_tag)
 
     # Load pre-trained vectors
     pretrained = {}
@@ -81,13 +83,11 @@ def main():
     pretrained_list = []
     scale = np.sqrt(3.0 / DIM_EMBEDDING) # From Jiang, Liang and Zhang
     for word in id_to_token:
-        if word.lower() in pretrained:
+        if word.lower() in pretrained: # applying lower() here because all GloVe vectors are for lowercase words
             pretrained_list.append(np.array(pretrained[word.lower()]))
         else:
             pretrained_list.append(np.random.uniform(-scale, scale, [DIM_EMBEDDING]))
 
-    NWORDS = len(id_to_token)
-    NTAGS = len(id_to_tag)
 
     model = dy.ParameterCollection()
     trainer = dy.SimpleSGDTrainer(model, learning_rate=LEARNING_RATE)
@@ -114,8 +114,7 @@ def main():
 
     for epoch_no in range(EPOCHS):
         random.shuffle(train)
-        current_lr = LEARNING_RATE / (1 + LEARNING_DECAY_RATE * epoch_no)
-        trainer.learning_rate = current_lr
+        trainer.learning_rate = LEARNING_RATE / (1 + LEARNING_DECAY_RATE * epoch_no)
 
         # do iteration
         train_loss, train_total, train_match = do_pass(train, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, True)
@@ -143,6 +142,7 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
         start += BATCH_SIZE
         if start % 4000 == 0:
             print(loss, match / total)
+            sys.stdout.flush()
 
         dy.renew_cg()
         errs = []

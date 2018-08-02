@@ -58,7 +58,7 @@ def main():
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train:
+    for tokens, tags in train + dev: # dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training.
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
@@ -68,6 +68,8 @@ def main():
             if tag not in tag_to_id:
                 tag_to_id[tag] = len(id_to_tag)
                 id_to_tag.append(tag)
+    NWORDS = len(id_to_token)
+    NTAGS = len(id_to_tag)
 
     # Load pre-trained vectors
     pretrained = {}
@@ -79,32 +81,28 @@ def main():
     pretrained_list = []
     scale = np.sqrt(3.0 / DIM_EMBEDDING) # From Jiang, Liang and Zhang
     for word in id_to_token:
-        if word in pretrained:
-            pretrained_list.append(pretrained[word])
-        elif word.lower() in pretrained:
-            pretrained_list.append(pretrained[word.lower()])
+        if word.lower() in pretrained: # applying lower() here because all GloVe vectors are for lowercase words
+            pretrained_list.append(np.array(pretrained[word.lower()]))
         else:
             pretrained_list.append(np.random.uniform(-scale, scale, [DIM_EMBEDDING]))
 
-    NWORDS = len(id_to_token)
-    NTAGS = len(id_to_tag)
-
+    # Construct the model
     model = TaggerModel(NWORDS, NTAGS, pretrained_list, id_to_token)
+    decay_calc = lambda epoch_no: 1 / (1 + LEARNING_DECAY_RATE * epoch_no)
     optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
-    expressions = (model,optimizer)
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=decay_calc)
+    expressions = (model, optimizer)
 
     for epoch_no in range(EPOCHS):
         random.shuffle(train)
-        current_lr = LEARNING_RATE / (1 + LEARNING_DECAY_RATE * epoch_no)
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = current_lr
 
         # do iteration
-        model.train() # Set in training mode, which enables dropout components (for example)
+        scheduler.step() # The first call to decay_calc is with a 0, so this should be done here
+        model.train() # Set in training mode, which does things like enable dropout components
         model.zero_grad() # Set all gradients to 0
         train_loss, train_total, train_match = do_pass(train, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, True)
 
-        model.eval() # Set in evaluation mode, which disables dropout components (for example)
+        model.eval() # Set in evaluation mode, which does things like disable dropout components
         _, dev_total, dev_match = do_pass(dev, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, False)
 
         print("epoch {} t-loss {} t-acc {} d-acc {}".format(epoch_no, train_loss, train_match / train_total, dev_match / dev_total))
@@ -169,11 +167,12 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
     total = 0
     start = 0
     while start < len(data):
-        batch = data[start : min(start + BATCH_SIZE, len(data))]
+        batch = data[start : start + BATCH_SIZE]
         batch.sort(key = lambda x: -len(x[0]))
         start += BATCH_SIZE
         if start % 4000 == 0:
             print(loss, match / total)
+            sys.stdout.flush()
 
         cur_batch_size = len(batch)
         max_length = len(batch[0][0])

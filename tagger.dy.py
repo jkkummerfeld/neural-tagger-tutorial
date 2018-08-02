@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import math
 import random
 import sys
 
@@ -20,7 +19,8 @@ GLOVE = "../data/glove.6B.100d.txt"
 WEIGHT_DECAY = 1e-8
 
 import dynet_config
-dynet_config.set(mem=256, autobatch=1, weight_decay=WEIGHT_DECAY,random_seed=0)
+dynet_config.set(mem=256, autobatch=0, weight_decay=WEIGHT_DECAY,random_seed=0)
+###dynet_config.set_gpu()
 import dynet as dy 
 
 def read_data(filename):
@@ -60,7 +60,7 @@ def main():
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train:
+    for tokens, tags in train + dev: # dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training.
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
@@ -81,10 +81,8 @@ def main():
     pretrained_list = []
     scale = np.sqrt(3.0 / DIM_EMBEDDING) # From Jiang, Liang and Zhang
     for word in id_to_token:
-        if word in pretrained:
-            pretrained_list.append(pretrained[word])
-        elif word.lower() in pretrained:
-            pretrained_list.append(pretrained[word.lower()])
+        if word.lower() in pretrained:
+            pretrained_list.append(np.array(pretrained[word.lower()]))
         else:
             pretrained_list.append(np.random.uniform(-scale, scale, [DIM_EMBEDDING]))
 
@@ -93,10 +91,11 @@ def main():
 
     model = dy.ParameterCollection()
     trainer = dy.SimpleSGDTrainer(model, learning_rate=LEARNING_RATE)
+    trainer.set_clip_threshold(-1) # DyNet clips gradients by default, this deactivates that behaviour
     pEmbedding = model.add_lookup_parameters((NWORDS, DIM_EMBEDDING))
     pEmbedding.init_from_array(np.array(pretrained_list))
 
-    stdv = 1.0 / math.sqrt(LSTM_SIZES[0]) # Needed to match PyTorch
+    stdv = 1.0 / np.sqrt(LSTM_SIZES[0]) # Needed to match PyTorch
     f_lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_SIZES[0], model, forget_bias=(random.random() - 0.5) * 2 *stdv)
     f_lstm.get_parameters()[0][0].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0], DIM_EMBEDDING]))
     f_lstm.get_parameters()[0][1].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0], LSTM_SIZES[0]]))
@@ -105,6 +104,9 @@ def main():
     b_lstm.get_parameters()[0][0].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0], DIM_EMBEDDING]))
     b_lstm.get_parameters()[0][1].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0], LSTM_SIZES[0]]))
     b_lstm.get_parameters()[0][2].set_value(np.random.uniform(-stdv, stdv, [4 * LSTM_SIZES[0]]))
+###    # Setting recurrent dropout
+###        f_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
+###        b_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
     f_lstm.set_dropouts(0.0, 0.0)
     b_lstm.set_dropouts(0.0, 0.0)
     pOutput = model.add_parameters((NTAGS, 2 * LSTM_SIZES[0]))
@@ -136,7 +138,7 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
     total = 0
     start = 0
     while start < len(data):
-        batch = data[start : min(start + BATCH_SIZE, len(data))]
+        batch = data[start : start + BATCH_SIZE]
         batch.sort(key = lambda x: -len(x[0]))
         start += BATCH_SIZE
         if start % 4000 == 0:
@@ -151,24 +153,20 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
             tag_ids = [tag_to_id[t] for t in tags]
 
             # Decode and update
-###            if train and KEEP_PROB < 1.0: # Setting recurrent dropout
-###                f_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
-###                b_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
             f_init = f_lstm.initial_state()
             b_init = b_lstm.initial_state()
             wembs = [dy.lookup(pEmbedding, w) for w in token_ids]
             if train:
                 wembs = [dy.dropout(w, 1.0 - KEEP_PROB) for w in wembs]
             f_lstm_output = [x.output() for x in f_init.add_inputs(wembs)]
-            b_lstm_output = [x.output() for x in b_init.add_inputs(reversed(wembs))]
+            b_lstm_output = reversed([x.output() for x in b_init.add_inputs(reversed(wembs))])
 
-            output_matrix = dy.parameter(pOutput)
             pred_tags = []
             for f, b, t in zip(f_lstm_output, b_lstm_output, tag_ids):
                 combined = dy.concatenate([f,b])
                 if train:
                     combined = dy.dropout(combined, 1.0 - KEEP_PROB)
-                r_t = output_matrix * combined
+                r_t = pOutput * combined
                 if train:
                     err = dy.pickneglogsoftmax(r_t, t)
                     errs.append(err)

@@ -56,7 +56,7 @@ def main():
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train:
+    for tokens, tags in train + dev:
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:

@@ -8,17 +8,33 @@ import sys
 lexer = get_lexer_by_name("python", stripall=True)
 formatter = HtmlFormatter(cssclass="source")
 
-def print_comment_and_code(comment, code):
-    code = highlight(code, lexer, formatter)
-    if """<span></span><span class="o">.</span>""" in code:
-        code = "".join(code.split("""<span></span><span class="o">.</span>"""))
-    if len(comment.strip()) > 0:
-        print("""<div class="outer">
-      <div class="description">""", end="")
-        print(comment, end="")
-        print("</div><code>""")
+def print_comment_and_code(comment, raw_code):
+    code = highlight(raw_code, lexer, formatter)
+    if len(raw_code) > 0:
+        if raw_code[-1] == '\n':
+            code = code.split("</pre></div>")[0] +"\n</pre></div>"
+        if raw_code[0] == ' ':
+            indent = 0
+            for i, char in enumerate(raw_code):
+                if char != ' ':
+                    break
+                indent += 1
+            parts = code.split("<span class")
+            parts[0] += ' '*indent
+            code = "<span class".join(parts)
+
+    if len(comment) > 0:
+        print("""<div class="outer">""")
+
+        print("<code>")
         print(code, end="")
-        print("</code></div>")
+        print("</code>")
+
+        print("""<div class="description">""", end="")
+        print("\n<br />\n".join(comment), end="<br /><br />")
+        print("</div>")
+
+        print("</div>")
     else:
         print("""<div class="outer"><code>""")
         print(code, end="")
@@ -32,15 +48,17 @@ def main():
     # Break into sections
     parts = [[]]
     for line in code.split("\n"):
-        if len(line.strip()) == 0 or line.strip().startswith("####"):
-            if len(parts[-1]) == 1:
-                parts[-2].append(parts[-1].pop())
-            else:
-                parts.append([""])
+        if line.strip().startswith("####"):
+            if len(parts[-1]) > 0 and (not parts[-1][-1].startswith("####")):
+                parts.append([])
+        elif line.startswith("### "):
+            continue
+        elif '#' in line:
+            line = line.split("#")[0]
         parts[-1].append(line)
 
     # Render
-    for part in parts:
+    for i, part in enumerate(parts):
         comment = []
         code = []
         for line in part:
@@ -48,7 +66,11 @@ def main():
                 comment.append(line.strip()[4:].strip())
             else:
                 code.append(line)
-        print_comment_and_code("\n".join(comment), "."+ "\n".join(code))
+        if i > 0:
+            print_comment_and_code(comment, "\n".join(code))
+        else:
+            print("\n".join(comment))
+            print_comment_and_code("", "\n".join(code))
 
     print(tail)
 
@@ -65,21 +87,39 @@ body {
     background: #000000;
     color: #FFFFFF;
 }
+h1 {
+    color: #36e6e8;
+    background: #222222;
+    width: 95%;
+    margin: 0px;
+    text-align: center;
+    padding: 10px;
+}
+div.header {
+    color: #36e6e8;
+    background: #222222;
+    width: 95%;
+    margin: 0px;
+    padding: 10px;
+    font-size: x-large;
+}
+div.outer {
+    width: 85%;
+    clear: both;
+}
+div.description {
+    font-size: large;
+    color: #36e6e8;
+    text-align: justify;
+    line-height: 112%;
+    overflow: hidden;
+}
 code  {
     background: #000000;
     color: #FFFFFF;
     float: right;
-    width: 70%;
+    width: 80ch;
     padding-left: 10px;
-}
-div.description {
-    float: left;
-    font-size: large;
-    color: #36e6e8;
-}
-div.outer {
-    width: 100%;
-    clear: both;
 }
 td.linenos { background-color: #f0f0f0; padding-right: 10px; }
 span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }

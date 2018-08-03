@@ -1,11 +1,14 @@
+#### This is a top level description
 #!/usr/bin/env python3
 
+#### Text describing the imports
 import argparse
 import random
 import sys
 
 import numpy as np
 
+#### Text describing the constants
 PAD = "__PAD__"
 UNK = "__UNK__"
 DIM_EMBEDDING = 100
@@ -18,11 +21,13 @@ KEEP_PROB = 0.5
 GLOVE = "../data/glove.6B.100d.txt"
 WEIGHT_DECAY = 1e-8
 
+#### DyNet specfic imports
 import dynet_config
 dynet_config.set(mem=256, autobatch=0, weight_decay=WEIGHT_DECAY,random_seed=0)
 ###dynet_config.set_gpu()
 import dynet as dy 
 
+#### Reading the data
 def read_data(filename):
     """Example input:
     Pierre|NNP Vinken|NNP ,|, 61|CD years|NNS old|JJ ,|, will|MD join|VB the|DT board|NN as|IN a|DT nonexecutive|JJ director|NN Nov.|NNP 29|CD .|.
@@ -36,6 +41,7 @@ def read_data(filename):
             content.append((tokens, tags))
     return content
 
+#### Simple change to decrease sparsity
 def simplify_token(token):
     chars = []
     for char in token:
@@ -46,16 +52,17 @@ def simplify_token(token):
     return ''.join(chars)
 
 def main():
+    #### Read arguments
     parser = argparse.ArgumentParser(description='Dynet tagger.')
     parser.add_argument('training_data')
     parser.add_argument('dev_data')
     args = parser.parse_args()
 
-    # Read data
+    #### Read data
     train = read_data(args.training_data)
     dev = read_data(args.dev_data)
 
-    # Make indices
+    #### Make indices
     id_to_token = [PAD, UNK]
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
@@ -73,7 +80,7 @@ def main():
     NWORDS = len(id_to_token)
     NTAGS = len(id_to_tag)
 
-    # Load pre-trained vectors
+    #### Load pre-trained vectors
     pretrained = {}
     for line in open(GLOVE):
         parts = line.strip().split()
@@ -88,7 +95,7 @@ def main():
         else:
             pretrained_list.append(np.random.uniform(-scale, scale, [DIM_EMBEDDING]))
 
-
+    #### DyNet model creation
     model = dy.ParameterCollection()
     trainer = dy.SimpleSGDTrainer(model, learning_rate=LEARNING_RATE)
     trainer.set_clip_threshold(-1) # DyNet clips gradients by default, this deactivates that behaviour
@@ -112,31 +119,32 @@ def main():
     pOutput = model.add_parameters((NTAGS, 2 * LSTM_SIZES[0]))
     expressions = (pEmbedding, pOutput, f_lstm, b_lstm, trainer)
 
+    #### Main training loop
     for epoch_no in range(EPOCHS):
         random.shuffle(train)
         trainer.learning_rate = LEARNING_RATE / (1 + LEARNING_DECAY_RATE * epoch_no)
-
-        # do iteration
         train_loss, train_total, train_match = do_pass(train, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, True)
         _, dev_total, dev_match = do_pass(dev, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions)
         print("epoch {} t-loss {} t-acc {} d-acc {}".format(epoch_no, train_loss, train_match / train_total, dev_match / dev_total))
 
-    # Save model
+    # TODO: Save model
 
-    # Reload model
+    # TODO: Reload model
 
-    # do evaluation
+    #### Do evaluation
     _, test_total, test_match = do_pass(dev, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions)
     print("Test Accuracy: {:.3f}".format(test_match / test_total))
 
 def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, train=False):
     pEmbedding, pOutput, f_lstm, b_lstm, trainer = expressions
 
+    #### Loop over batches
     loss = 0
     match = 0
     total = 0
     start = 0
     while start < len(data):
+        #### Form batch
         batch = data[start : start + BATCH_SIZE]
         batch.sort(key = lambda x: -len(x[0]))
         start += BATCH_SIZE
@@ -144,6 +152,7 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
             print(loss, match / total)
             sys.stdout.flush()
 
+        #### DyNet network construction
         dy.renew_cg()
         errs = []
         predicted = []
@@ -175,12 +184,14 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, id_to_token, expressions, t
                 pred_tags.append(chosen)
             predicted.append(pred_tags)
 
+        #### During training, do update
         if train:
             sum_errs = dy.esum(errs)
             loss += sum_errs.scalar_value()
             sum_errs.backward()
             trainer.update()
 
+        #### Scoring
         for (_, g), a in zip(batch, predicted):
             total += len(g)
             for gt, at in zip(g, a):

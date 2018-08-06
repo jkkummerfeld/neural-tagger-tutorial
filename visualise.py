@@ -51,7 +51,7 @@ def main():
                 parts.append([])
         elif line.startswith("### "):
             continue
-        elif len(line) > 2 and '#' in line[1:]:
+        elif len(line.strip()) > 0 and '#' in line.strip()[1:]:
             line = line.split("#")[0]
         parts[-1].append(line)
 
@@ -94,7 +94,6 @@ body {
 h1 {
     color: #36e6e8;
     background: #222222;
-    width: 95%;
     margin: 0px;
     text-align: center;
     padding: 10px;
@@ -103,14 +102,14 @@ div.main {
     display: flex;
     flex-direction: column;
     align-items: center;     /* center items horizontally, in this case */
+    padding-top: 10px;
 }
 div.header {
     color: #36e6e8;
     background: #222222;
-    width: 95%;
     margin: 0px;
     padding: 10px;
-    font-size: x-large;
+    font-size: large;
 }
 div.outer {
     clear: both;

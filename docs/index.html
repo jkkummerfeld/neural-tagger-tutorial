@@ -14,7 +14,6 @@ body {
 h1 {
     color: #36e6e8;
     background: #222222;
-    width: 95%;
     margin: 0px;
     text-align: center;
     padding: 10px;
@@ -23,14 +22,14 @@ div.main {
     display: flex;
     flex-direction: column;
     align-items: center;     /* center items horizontally, in this case */
+    padding-top: 10px;
 }
 div.header {
     color: #36e6e8;
     background: #222222;
-    width: 95%;
     margin: 0px;
     padding: 10px;
-    font-size: x-large;
+    font-size: large;
 }
 div.outer {
     clear: both;
@@ -125,9 +124,22 @@ body .il { color: #BC94B7 } /* Literal.Number.Integer.Long */
 </head>
 
 <body>
-<h1>Implementing a Part-of-Speech tagger in DyNet</h1>
+<h1>Implementing a neural Part-of-Speech tagger</h1>
 <div class=header>
-This is a top level description
+<p>
+This is a bare-bones tagger than scores 97.2% on the standard Penn Treebank dataset.
+It is written to make it easy to understand how to implement a model in DyNet, PyTorch and Tensorflow, not for clean modularity or flexibility.
+The design of this page is motivated by my own preferences - I find interpreting code as an annotated continuous block is more intuitive than interspersing code and comments.
+Hopefully you find it informative too!
+<p>
+</p>
+Help from:
+<ul>
+<li> https://github.com/jiesutd/NCRFpp </li>
+<li> https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html </li>
+<li> https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py </li>
+</ul>
+</p>
 </div>
 <div class="main">
 <div class="outer">
@@ -139,34 +151,28 @@ This is a top level description
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 </pre></div></code>
-<div class="description">We import libraries for a few specific uses:
+<div class="description">Imports
 <br />
-- argparse for processing command line arguments
-<br />
-- random for shuffling our data
-<br />
-- sys for flushing output
-<br />
-- numpy for handling vectors of data<br /><br /></div>
+We use argparse for processing command line arguments, random for shuffling our data, sys for flushing output, and numpy for handling vectors of data.<br /><br /></div>
 </div>
 <div class="outer">
 <code>
 <div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
 <span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
-<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span> 
 <span class="n">LSTM_HIDDEN</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span>
-<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span>
-<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span>
-<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span>
-<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span>
+<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span> 
+<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span> 
+<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span> 
+<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
+<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
 <span class="n">WEIGHT_DECAY</span> <span class="o">=</span> <span class="mf">1e-8</span>
 
 </pre></div></code>
-<div class="description">These are all the constants used in this program
+<div class="description">Constants
 <br />
-Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here as defined by the Jiang, Liang and Zhang (CoLing 2018). The meaning of each constant is discussed when it is used below.<br /><br /></div>
+Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here to match Jiang, Liang and Zhang (CoLing 2018).<br /><br /></div>
 </div>
 <div class="outer">
 <code>
@@ -178,15 +184,7 @@ Typically, we would make many of these command line arguments and tune using the
 </pre></div></code>
 <div class="description">DyNet specfic imports
 <br />
-The first allows us to configure DyNet from within code rather than on the command line:
-<br />
-mem - The amount of system memory initially allocated (DyNet has its own memory management).
-<br />
-autobatch - DyNet can automatically batch computations by setting this flag.
-<br />
-weight_decay - After every update, multiply the parameter by (1-decay).
-<br />
-random_seed - Set the seed for random number generation.<br /><br /></div>
+The first allows us to configure DyNet from within code rather than on the command line:  mem is the amount of system memory initially allocated (DyNet has its own memory management), autobatch toggles automatic parallelisation of computations, weight_decay rescales weights by (1 - decay) after every update, random_seed sets the seed for random number generation.<br /><br /></div>
 </div>
 <div class="outer">
 <code>
@@ -266,11 +264,7 @@ For the purpose of this example we only have arguments for locations of the data
 </pre></div></code>
 <div class="description">Make indices
 <br />
-These are mappings from strings to integers that will be used to get the input for our model and to process the output.
-<br />
-UNK is added to our mapping so that there is a vector we can use when we encounter unknown words.
-<br />
-The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kepy for consistency.<br /><br /></div>
+These are mappings from strings to integers that will be used to get the input for our model and to process the output. UNK is added to our mapping so that there is a vector we can use when we encounter unknown words. The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kept for consistency.<br /><br /></div>
 </div>
 <div class="outer">
 <code>
@@ -284,7 +278,7 @@ The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the 
 </code>
 <div class="description">Load pre-trained vectors
 <br />
-I am assuming these are the 50-dimensional GloVe embeddings in their standard format.<br /><br /></div>
+I am assuming these are the 100-dimensional GloVe embeddings in their standard format.<br /><br /></div>
 </div>
 <div class="outer">
 <code>
@@ -296,30 +290,62 @@ I am assuming these are the 50-dimensional GloVe embeddings in their standard fo
         <span class="k">else</span><span class="p">:</span>
 </pre></div>
 </code>
-<div class="description">We will need the word vectors as a list to initialise the embeddings, where each entry in the list corresponds to the token with that index.<br /><br /></div>
+<div class="description">We need the word vectors as a list to initialise the embeddings. Each entry in the list corresponds to the token with that index.<br /><br /></div>
 </div>
 <div class="outer">
 <code>
 <div class="source"><pre><span></span>            <span class="n">random_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="p">[</span><span class="n">DIM_EMBEDDING</span><span class="p">])</span>
             <span class="n">pretrained_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random_vector</span><span class="p">)</span>
 
-</pre></div></code>
+    <span class="c1"># DyNet model creation</span>
+</pre></div>
+</code>
 <div class="description">For words that do not appear in GloVe we generate a random vector (note, the choice of scale here is important).<br /><br /></div>
 </div>
 <div class="outer">
 <code>
 <div class="source"><pre><span></span>    <span class="n">model</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">ParameterCollection</span><span class="p">()</span>
-    <span class="n">trainer</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">SimpleSGDTrainer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="n">LEARNING_RATE</span><span class="p">)</span>
-    <span class="n">trainer</span><span class="o">.</span><span class="n">set_clip_threshold</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> 
-    <span class="n">pEmbedding</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_lookup_parameters</span><span class="p">((</span><span class="n">NWORDS</span><span class="p">,</span> <span class="n">DIM_EMBEDDING</span><span class="p">))</span>
+</pre></div>
+</code>
+<div class="description">An object to hold the parameters/weights of the model.<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>    <span class="n">pEmbedding</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_lookup_parameters</span><span class="p">((</span><span class="n">NWORDS</span><span class="p">,</span> <span class="n">DIM_EMBEDDING</span><span class="p">))</span>
     <span class="n">pEmbedding</span><span class="o">.</span><span class="n">init_from_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pretrained_list</span><span class="p">))</span>
-
-    <span class="n">stdv</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">LSTM_HIDDEN</span><span class="p">)</span> 
+</pre></div>
+</code>
+<div class="description">Lookup parameters are a matrix that supports efficient sparse lookup.<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>    <span class="n">stdv</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">LSTM_HIDDEN</span><span class="p">)</span> 
     <span class="n">f_lstm</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">VanillaLSTMBuilder</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">DIM_EMBEDDING</span><span class="p">,</span> <span class="n">LSTM_HIDDEN</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
-            <span class="n">forget_bias</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_sample</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span><span class="n">stdv</span><span class="p">)</span>
+            <span class="n">forget_bias</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_sample</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">stdv</span><span class="p">)</span>
     <span class="n">b_lstm</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">VanillaLSTMBuilder</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">DIM_EMBEDDING</span><span class="p">,</span> <span class="n">LSTM_HIDDEN</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
-            <span class="n">forget_bias</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_sample</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span><span class="n">stdv</span><span class="p">)</span>
-    <span class="n">f_lstm</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span>
+            <span class="n">forget_bias</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_sample</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">stdv</span><span class="p">)</span>
+</pre></div>
+</code>
+<div class="description">Objects that create LSTM cells and the necessary parameters.<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>    <span class="n">pOutput</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">((</span><span class="n">NTAGS</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">LSTM_HIDDEN</span><span class="p">))</span>
+
+</pre></div></code>
+<div class="description">A simple weight matrix for the final output calculation.<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>    <span class="n">f_lstm</span><span class="o">.</span><span class="n">set_dropouts</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">b_lstm</span><span class="o">.</span><span class="n">set_dropouts</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+</pre></div>
+</code>
+<div class="description">Setting recurrent dropout values (not used in this case).<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>    <span class="n">f_lstm</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">stdv</span><span class="p">,</span> <span class="n">stdv</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span> <span class="o">*</span> <span class="n">LSTM_HIDDEN</span><span class="p">,</span> <span class="n">DIM_EMBEDDING</span><span class="p">]))</span>
     <span class="n">f_lstm</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">stdv</span><span class="p">,</span> <span class="n">stdv</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span> <span class="o">*</span> <span class="n">LSTM_HIDDEN</span><span class="p">,</span> <span class="n">LSTM_HIDDEN</span><span class="p">]))</span>
@@ -331,13 +357,26 @@ I am assuming these are the 50-dimensional GloVe embeddings in their standard fo
             <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">stdv</span><span class="p">,</span> <span class="n">stdv</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span> <span class="o">*</span> <span class="n">LSTM_HIDDEN</span><span class="p">,</span> <span class="n">LSTM_HIDDEN</span><span class="p">]))</span>
     <span class="n">b_lstm</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">stdv</span><span class="p">,</span> <span class="n">stdv</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span> <span class="o">*</span> <span class="n">LSTM_HIDDEN</span><span class="p">]))</span>
-    <span class="n">f_lstm</span><span class="o">.</span><span class="n">set_dropouts</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-    <span class="n">b_lstm</span><span class="o">.</span><span class="n">set_dropouts</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-    <span class="n">pOutput</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">((</span><span class="n">NTAGS</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">LSTM_HIDDEN</span><span class="p">))</span>
-    <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">pEmbedding</span><span class="p">,</span> <span class="n">pOutput</span><span class="p">,</span> <span class="n">f_lstm</span><span class="p">,</span> <span class="n">b_lstm</span><span class="p">,</span> <span class="n">trainer</span><span class="p">)</span>
 
 </pre></div></code>
-<div class="description">DyNet model creation<br /><br /></div>
+<div class="description">To match PyTorch, we initialise the parameters with an unconventional approach.<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>    <span class="n">trainer</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">SimpleSGDTrainer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="n">LEARNING_RATE</span><span class="p">)</span>
+    <span class="n">trainer</span><span class="o">.</span><span class="n">set_clip_threshold</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+</pre></div></code>
+<div class="description">The trainer object is used to update the model.
+<br />
+DyNet clips gradients by default, which we disable here (this can have a big impact on performance).<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>    <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">pEmbedding</span><span class="p">,</span> <span class="n">pOutput</span><span class="p">,</span> <span class="n">f_lstm</span><span class="p">,</span> <span class="n">b_lstm</span><span class="p">,</span> <span class="n">trainer</span><span class="p">)</span>
+
+</pre></div></code>
+<div class="description">To make the code match across the three versions, we group together some DyNet specifc values needed when doing a pass over the data.<br /><br /></div>
 </div>
 <div class="outer">
 <code>
@@ -352,8 +391,12 @@ I am assuming these are the 50-dimensional GloVe embeddings in their standard fo
         <span class="k">print</span><span class="p">(</span><span class="s2">&quot;epoch {} t-loss {} t-acc {} d-acc {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch_no</span><span class="p">,</span>
             <span class="n">train_loss</span><span class="p">,</span> <span class="n">train_match</span> <span class="o">/</span> <span class="n">train_total</span><span class="p">,</span> <span class="n">dev_match</span> <span class="o">/</span> <span class="n">dev_total</span><span class="p">))</span>
 
+    <span class="c1"># TODO: Save model</span>
+
+    <span class="c1"># TODO: Reload model</span>
+
 </pre></div></code>
-<div class="description">Main training loop<br /><br /></div>
+<div class="description">Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.<br /><br /></div>
 </div>
 <div class="outer">
 <code>
@@ -376,67 +419,131 @@ I am assuming these are the 50-dimensional GloVe embeddings in their standard fo
     <span class="k">while</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 </pre></div>
 </code>
-<div class="description">Loop over batches<br /><br /></div>
+<div class="description">Loop over batches, tracking the start of the batch in the data<br /><br /></div>
 </div>
 <div class="outer">
 <code>
 <div class="source"><pre><span></span>        <span class="n">batch</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">start</span> <span class="p">:</span> <span class="n">start</span> <span class="o">+</span> <span class="n">BATCH_SIZE</span><span class="p">]</span>
         <span class="n">batch</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
         <span class="n">start</span> <span class="o">+=</span> <span class="n">BATCH_SIZE</span>
-        <span class="k">if</span> <span class="n">start</span> <span class="o">%</span> <span class="mi">4000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</pre></div>
+</code>
+<div class="description">Form the batch and order it based on length (not necessary for DyNet, but important for efficient processing in PyTorch).<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>        <span class="k">if</span> <span class="n">start</span> <span class="o">%</span> <span class="mi">4000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">match</span> <span class="o">/</span> <span class="n">total</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
 </pre></div></code>
-<div class="description">Form batch<br /><br /></div>
+<div class="description">Log partial results so we can conveniently check progress<br /><br /></div>
 </div>
 <div class="outer">
 <code>
 <div class="source"><pre><span></span>        <span class="n">dy</span><span class="o">.</span><span class="n">renew_cg</span><span class="p">()</span>
-        <span class="n">errs</span> <span class="o">=</span> <span class="p">[]</span>
+</pre></div>
+</code>
+<div class="description">Start a new computation graph for this batch<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>        <span class="n">loss_expressions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">predicted</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
-            
-            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
+</pre></div>
+</code>
+<div class="description">For each example, we will construct an expression that gives the loss.<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
             <span class="n">tag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_to_id</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
 
-            
-            <span class="n">f_init</span> <span class="o">=</span> <span class="n">f_lstm</span><span class="o">.</span><span class="n">initial_state</span><span class="p">()</span>
-            <span class="n">b_init</span> <span class="o">=</span> <span class="n">b_lstm</span><span class="o">.</span><span class="n">initial_state</span><span class="p">()</span>
-            <span class="n">wembs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dy</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">pEmbedding</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">token_ids</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
+</pre></div></code>
+<div class="description">Convert tokens and tags from strings to numbers using the indices<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>            <span class="n">wembs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dy</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">pEmbedding</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">token_ids</span><span class="p">]</span>
+</pre></div>
+</code>
+<div class="description">Look up word embeddings<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>            <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
                 <span class="n">wembs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dy</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">KEEP_PROB</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wembs</span><span class="p">]</span>
+</pre></div>
+</code>
+<div class="description">During training, apply dropout to the inputs<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>            <span class="n">f_init</span> <span class="o">=</span> <span class="n">f_lstm</span><span class="o">.</span><span class="n">initial_state</span><span class="p">()</span>
             <span class="n">f_lstm_output</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">output</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">f_init</span><span class="o">.</span><span class="n">add_inputs</span><span class="p">(</span><span class="n">wembs</span><span class="p">)]</span>
             <span class="n">rev_embs</span> <span class="o">=</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">wembs</span><span class="p">)</span>
+            <span class="n">b_init</span> <span class="o">=</span> <span class="n">b_lstm</span><span class="o">.</span><span class="n">initial_state</span><span class="p">()</span>
             <span class="n">b_lstm_output</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">output</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">b_init</span><span class="o">.</span><span class="n">add_inputs</span><span class="p">(</span><span class="n">rev_embs</span><span class="p">)]</span>
 
             <span class="n">pred_tags</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">f_lstm_output</span><span class="p">,</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">b_lstm_output</span><span class="p">),</span> <span class="n">tag_ids</span><span class="p">):</span>
+</pre></div>
+</code>
+<div class="description">Create an expression for two LSTMs and feed in the embeddings (reversed in one case).
+<br />
+We pull out the output vector from the cell state at each step.<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>            <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">f_lstm_output</span><span class="p">,</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">b_lstm_output</span><span class="p">),</span> <span class="n">tag_ids</span><span class="p">):</span>
                 <span class="n">combined</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">f</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
+</pre></div>
+</code>
+<div class="description">Combine the outputs<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>                <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
                     <span class="n">combined</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">combined</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">KEEP_PROB</span><span class="p">)</span>
-                <span class="n">r_t</span> <span class="o">=</span> <span class="n">pOutput</span> <span class="o">*</span> <span class="n">combined</span>
+</pre></div>
+</code>
+<div class="description">Apply dropout to the output<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>                <span class="n">r_t</span> <span class="o">=</span> <span class="n">pOutput</span> <span class="o">*</span> <span class="n">combined</span>
                 <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
-                    <span class="n">err</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">pickneglogsoftmax</span><span class="p">(</span><span class="n">r_t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
-                    <span class="n">errs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
-                <span class="n">out</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">r_t</span><span class="p">)</span>
-                <span class="n">chosen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">npvalue</span><span class="p">())</span>
+</pre></div>
+</code>
+<div class="description">Multiple by a matrix to get scores for each tag<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>                    <span class="n">err</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">pickneglogsoftmax</span><span class="p">(</span><span class="n">r_t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+                    <span class="n">loss_expressions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+</pre></div>
+</code>
+<div class="description">When training, get an expression for the cross-entropy loss<br /><br /></div>
+</div>
+<div class="outer">
+<code>
+<div class="source"><pre><span></span>                <span class="n">chosen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">npvalue</span><span class="p">())</span>
                 <span class="n">pred_tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chosen</span><span class="p">)</span>
             <span class="n">predicted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pred_tags</span><span class="p">)</span>
 
 </pre></div></code>
-<div class="description">DyNet network construction<br /><br /></div>
+<div class="description">Calculate the highest scoring tag (which will lead to evaluation of the graph)<br /><br /></div>
 </div>
 <div class="outer">
 <code>
 <div class="source"><pre><span></span>        <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
-            <span class="n">sum_errs</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">esum</span><span class="p">(</span><span class="n">errs</span><span class="p">)</span>
-            <span class="n">loss</span> <span class="o">+=</span> <span class="n">sum_errs</span><span class="o">.</span><span class="n">scalar_value</span><span class="p">()</span>
-            <span class="n">sum_errs</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="n">loss_for_batch</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">esum</span><span class="p">(</span><span class="n">loss_expressions</span><span class="p">)</span>
+            <span class="n">loss_for_batch</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
             <span class="n">trainer</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+            <span class="n">loss</span> <span class="o">+=</span> <span class="n">loss_for_batch</span><span class="o">.</span><span class="n">scalar_value</span><span class="p">()</span>
 
 </pre></div></code>
-<div class="description">During training, do update<br /><br /></div>
+<div class="description">During training, combine the losses for the batch, do an update, and record the loss<br /><br /></div>
 </div>
 <div class="outer">
 <code>
@@ -453,7 +560,7 @@ I am assuming these are the 50-dimensional GloVe embeddings in their standard fo
     <span class="n">main</span><span class="p">()</span>
 
 </pre></div></code>
-<div class="description">Scoring<br /><br /></div>
+<div class="description">Update the number of correct tags and total tags<br /><br /></div>
 </div>
 </div>
 </body>

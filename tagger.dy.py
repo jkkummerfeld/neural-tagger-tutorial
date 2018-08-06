@@ -1,40 +1,46 @@
-#### <h1>Implementing a Part-of-Speech tagger in DyNet</h1>
+#### <h1>Implementing a neural Part-of-Speech tagger</h1>
 #### <div class=header>
-#### This is a top level description
+#### <p>
+#### This is a bare-bones tagger than scores 97.2% on the standard Penn Treebank dataset.
+#### It is written to make it easy to understand how to implement a model in DyNet, PyTorch and Tensorflow, not for clean modularity or flexibility.
+#### The design of this page is motivated by my own preferences - I find interpreting code as an annotated continuous block is more intuitive than interspersing code and comments.
+#### Hopefully you find it informative too!
+#### <p>
+#### </p>
+#### Help from:
+#### <ul>
+#### <li> https://github.com/jiesutd/NCRFpp </li>
+#### <li> https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html </li>
+#### <li> https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py </li>
+#### </ul>
+#### </p>
 #### </div>
 #!/usr/bin/env python3
 
-#### We import libraries for a few specific uses:
-#### - argparse for processing command line arguments
-#### - random for shuffling our data
-#### - sys for flushing output
-#### - numpy for handling vectors of data
+#### Imports
+#### We use argparse for processing command line arguments, random for shuffling our data, sys for flushing output, and numpy for handling vectors of data.
 import argparse
 import random
 import sys
 
 import numpy as np
 
-#### These are all the constants used in this program
-#### Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here as defined by the Jiang, Liang and Zhang (CoLing 2018). The meaning of each constant is discussed when it is used below.
+#### Constants
+#### Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here to match Jiang, Liang and Zhang (CoLing 2018).
 PAD = "__PAD__"
 UNK = "__UNK__"
-DIM_EMBEDDING = 100
-LSTM_HIDDEN = 100 # based on NCRFpp (200 in the paper, but 100 per direction in code)
-BATCH_SIZE = 10
-LEARNING_RATE = 0.015
-LEARNING_DECAY_RATE = 0.05
-EPOCHS = 100
-KEEP_PROB = 0.5
-GLOVE = "../data/glove.6B.100d.txt"
-WEIGHT_DECAY = 1e-8
+DIM_EMBEDDING = 100 #### DIM_EMBEDDING - number of dimensions in our word embeddings.
+LSTM_HIDDEN = 100 # based on NCRFpp (200 in the paper, but 100 per direction in code) #### LSTM_HIDDEN - number of dimensions in the hidden vectors for the LSTM.
+BATCH_SIZE = 10 #### BATCH_SIZE - number of examples considered in each model update.
+LEARNING_RATE = 0.015 #### LEARNING_RATE - adjusts how rapidly model parameters change by rescaling the gradient vector.
+LEARNING_DECAY_RATE = 0.05 #### LEARNING_DECAY_RATE - part of a rescaling of the learning rate after each pass through the data.
+EPOCHS = 100 #### EPOCHS - number of passes through the data in training.
+KEEP_PROB = 0.5 #### KEEP_PROB - probability of keeping a value when applying dropout.
+GLOVE = "../data/glove.6B.100d.txt" #### GLOVE - location of glove vectors.
+WEIGHT_DECAY = 1e-8 #### WEIGHT_DECAY - part of a rescaling of weights when an update occurs.
 
 #### DyNet specfic imports
-#### The first allows us to configure DyNet from within code rather than on the command line:
-#### mem - The amount of system memory initially allocated (DyNet has its own memory management).
-#### autobatch - DyNet can automatically batch computations by setting this flag.
-#### weight_decay - After every update, multiply the parameter by (1-decay).
-#### random_seed - Set the seed for random number generation.
+#### The first allows us to configure DyNet from within code rather than on the command line:  mem is the amount of system memory initially allocated (DyNet has its own memory management), autobatch toggles automatic parallelisation of computations, weight_decay rescales weights by (1 - decay) after every update, random_seed sets the seed for random number generation.
 import dynet_config
 dynet_config.set(mem=256, autobatch=0, weight_decay=WEIGHT_DECAY,random_seed=0)
 # dynet_config.set_gpu() 
@@ -78,9 +84,7 @@ def main():
     dev = read_data(args.dev_data)
 
     #### Make indices
-    #### These are mappings from strings to integers that will be used to get the input for our model and to process the output.
-    #### UNK is added to our mapping so that there is a vector we can use when we encounter unknown words.
-    #### The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kepy for consistency.
+    #### These are mappings from strings to integers that will be used to get the input for our model and to process the output. UNK is added to our mapping so that there is a vector we can use when we encounter unknown words. The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kept for consistency.
     id_to_token = [PAD, UNK]
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
@@ -99,14 +103,14 @@ def main():
     NTAGS = len(id_to_tag)
 
     #### Load pre-trained vectors
-    #### I am assuming these are the 50-dimensional GloVe embeddings in their standard format.
+    #### I am assuming these are the 100-dimensional GloVe embeddings in their standard format.
     pretrained = {}
     for line in open(GLOVE):
         parts = line.strip().split()
         word = parts[0]
         vector = [float(v) for v in parts[1:]]
         pretrained[word] = vector
-    #### We will need the word vectors as a list to initialise the embeddings, where each entry in the list corresponds to the token with that index.
+    #### We need the word vectors as a list to initialise the embeddings. Each entry in the list corresponds to the token with that index.
     pretrained_list = []
     scale = np.sqrt(3.0 / DIM_EMBEDDING) # From Jiang, Liang and Zhang
     for word in id_to_token:
@@ -117,18 +121,25 @@ def main():
             random_vector = np.random.uniform(-scale, scale, [DIM_EMBEDDING])
             pretrained_list.append(random_vector)
 
-    #### DyNet model creation
+    # DyNet model creation
+    #### An object to hold the parameters/weights of the model.
     model = dy.ParameterCollection()
-    trainer = dy.SimpleSGDTrainer(model, learning_rate=LEARNING_RATE)
-    trainer.set_clip_threshold(-1) # DyNet clips gradients by default, this deactivates that behaviour
+    #### Lookup parameters are a matrix that supports efficient sparse lookup.
     pEmbedding = model.add_lookup_parameters((NWORDS, DIM_EMBEDDING))
     pEmbedding.init_from_array(np.array(pretrained_list))
-
+    #### Objects that create LSTM cells and the necessary parameters.
     stdv = 1.0 / np.sqrt(LSTM_HIDDEN) # Needed to match PyTorch
     f_lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_HIDDEN, model,
-            forget_bias=(np.random.random_sample() - 0.5) * 2 *stdv)
+            forget_bias=(np.random.random_sample() - 0.5) * 2 * stdv)
     b_lstm = dy.VanillaLSTMBuilder(1, DIM_EMBEDDING, LSTM_HIDDEN, model,
-            forget_bias=(np.random.random_sample() - 0.5) * 2 *stdv)
+            forget_bias=(np.random.random_sample() - 0.5) * 2 * stdv)
+    #### A simple weight matrix for the final output calculation.
+    pOutput = model.add_parameters((NTAGS, 2 * LSTM_HIDDEN))
+
+    #### Setting recurrent dropout values (not used in this case).
+    f_lstm.set_dropouts(0.0, 0.0)
+    b_lstm.set_dropouts(0.0, 0.0)
+    #### To match PyTorch, we initialise the parameters with an unconventional approach.
     f_lstm.get_parameters()[0][0].set_value(
             np.random.uniform(-stdv, stdv, [4 * LSTM_HIDDEN, DIM_EMBEDDING]))
     f_lstm.get_parameters()[0][1].set_value(
@@ -141,15 +152,16 @@ def main():
             np.random.uniform(-stdv, stdv, [4 * LSTM_HIDDEN, LSTM_HIDDEN]))
     b_lstm.get_parameters()[0][2].set_value(
             np.random.uniform(-stdv, stdv, [4 * LSTM_HIDDEN]))
-###    # Setting recurrent dropout
-###        f_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
-###        b_lstm.set_dropouts(1.0 - KEEP_PROB, 1.0 - KEEP_PROB)
-    f_lstm.set_dropouts(0.0, 0.0)
-    b_lstm.set_dropouts(0.0, 0.0)
-    pOutput = model.add_parameters((NTAGS, 2 * LSTM_HIDDEN))
+
+    #### The trainer object is used to update the model.
+    #### DyNet clips gradients by default, which we disable here (this can have a big impact on performance).
+    trainer = dy.SimpleSGDTrainer(model, learning_rate=LEARNING_RATE)
+    trainer.set_clip_threshold(-1)
+
+    #### To make the code match across the three versions, we group together some DyNet specifc values needed when doing a pass over the data.
     expressions = (pEmbedding, pOutput, f_lstm, b_lstm, trainer)
 
-    #### Main training loop
+    #### Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.
     for epoch_no in range(EPOCHS):
         random.shuffle(train)
         trainer.learning_rate = \
@@ -173,61 +185,70 @@ def main():
 def do_pass(data, token_to_id, tag_to_id, id_to_tag, expressions, train=False):
     pEmbedding, pOutput, f_lstm, b_lstm, trainer = expressions
 
-    #### Loop over batches
+    #### Loop over batches, tracking the start of the batch in the data
     loss = 0
     match = 0
     total = 0
     start = 0
     while start < len(data):
-        #### Form batch
+        #### Form the batch and order it based on length (not necessary for DyNet, but important for efficient processing in PyTorch).
         batch = data[start : start + BATCH_SIZE]
         batch.sort(key = lambda x: -len(x[0]))
         start += BATCH_SIZE
+        #### Log partial results so we can conveniently check progress
         if start % 4000 == 0:
             print(loss, match / total)
             sys.stdout.flush()
 
-        #### DyNet network construction
+        #### Start a new computation graph for this batch
         dy.renew_cg()
-        errs = []
+        #### For each example, we will construct an expression that gives the loss.
+        loss_expressions = []
         predicted = []
         for n, (tokens, tags) in enumerate(batch):
-            # Convert to indices
+            #### Convert tokens and tags from strings to numbers using the indices
             token_ids = [token_to_id.get(simplify_token(t), 0) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
 
-            # Decode and update
-            f_init = f_lstm.initial_state()
-            b_init = b_lstm.initial_state()
+            #### Look up word embeddings
             wembs = [dy.lookup(pEmbedding, w) for w in token_ids]
+            #### During training, apply dropout to the inputs
             if train:
                 wembs = [dy.dropout(w, 1.0 - KEEP_PROB) for w in wembs]
+            #### Create an expression for two LSTMs and feed in the embeddings (reversed in one case).
+            #### We pull out the output vector from the cell state at each step.
+            f_init = f_lstm.initial_state()
             f_lstm_output = [x.output() for x in f_init.add_inputs(wembs)]
             rev_embs = reversed(wembs)
+            b_init = b_lstm.initial_state()
             b_lstm_output = [x.output() for x in b_init.add_inputs(rev_embs)]
 
             pred_tags = []
+            #### Combine the outputs
             for f, b, t in zip(f_lstm_output, reversed(b_lstm_output), tag_ids):
                 combined = dy.concatenate([f,b])
+                #### Apply dropout to the output
                 if train:
                     combined = dy.dropout(combined, 1.0 - KEEP_PROB)
+                #### Multiple by a matrix to get scores for each tag
                 r_t = pOutput * combined
                 if train:
+                    #### When training, get an expression for the cross-entropy loss
                     err = dy.pickneglogsoftmax(r_t, t)
-                    errs.append(err)
-                out = dy.softmax(r_t)
+                    loss_expressions.append(err)
+                #### Calculate the highest scoring tag (which will lead to evaluation of the graph)
                 chosen = np.argmax(out.npvalue())
                 pred_tags.append(chosen)
             predicted.append(pred_tags)
 
-        #### During training, do update
+        #### During training, combine the losses for the batch, do an update, and record the loss
         if train:
-            sum_errs = dy.esum(errs)
-            loss += sum_errs.scalar_value()
-            sum_errs.backward()
+            loss_for_batch = dy.esum(loss_expressions)
+            loss_for_batch.backward()
             trainer.update()
+            loss += loss_for_batch.scalar_value()
 
-        #### Scoring
+        #### Update the number of correct tags and total tags
         for (_, g), a in zip(batch, predicted):
             total += len(g)
             for gt, at in zip(g, a):

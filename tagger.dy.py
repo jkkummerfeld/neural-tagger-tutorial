@@ -15,7 +15,8 @@ import sys
 
 import numpy as np
 
-#### These are all the constants used in this program ..... Text describing the constants
+#### These are all the constants used in this program
+#### Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here as defined by the Jiang, Liang and Zhang (CoLing 2018). The meaning of each constant is discussed when it is used below.
 PAD = "__PAD__"
 UNK = "__UNK__"
 DIM_EMBEDDING = 100
@@ -29,12 +30,18 @@ GLOVE = "../data/glove.6B.100d.txt"
 WEIGHT_DECAY = 1e-8
 
 #### DyNet specfic imports
+#### The first allows us to configure DyNet from within code rather than on the command line:
+#### mem - The amount of system memory initially allocated (DyNet has its own memory management).
+#### autobatch - DyNet can automatically batch computations by setting this flag.
+#### weight_decay - After every update, multiply the parameter by (1-decay).
+#### random_seed - Set the seed for random number generation.
 import dynet_config
 dynet_config.set(mem=256, autobatch=0, weight_decay=WEIGHT_DECAY,random_seed=0)
-###dynet_config.set_gpu()
+# dynet_config.set_gpu() 
 import dynet as dy 
 
 #### Reading the data
+#### We are expecting a minor variation on the raw Penn Treebank data, with one line per sentence, tokens separated by spaces, and the tag for each token placed next to its word (the | works as a separator as it does not appear as a token).
 def read_data(filename):
     """Example input:
     Pierre|NNP Vinken|NNP ,|, 61|CD years|NNS old|JJ
@@ -48,7 +55,7 @@ def read_data(filename):
             content.append((tokens, tags))
     return content
 
-#### Simple change to decrease sparsity
+#### Replace all digits with 0 to decrease sparsity.
 def simplify_token(token):
     chars = []
     for char in token:
@@ -60,16 +67,20 @@ def simplify_token(token):
 
 def main():
     #### Read arguments
+    #### For the purpose of this example we only have arguments for locations of the data.
     parser = argparse.ArgumentParser(description='Dynet tagger.')
     parser.add_argument('training_data')
     parser.add_argument('dev_data')
     args = parser.parse_args()
 
-    #### Read data
+    #### Read data (see function above)
     train = read_data(args.training_data)
     dev = read_data(args.dev_data)
 
     #### Make indices
+    #### These are mappings from strings to integers that will be used to get the input for our model and to process the output.
+    #### UNK is added to our mapping so that there is a vector we can use when we encounter unknown words.
+    #### The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kepy for consistency.
     id_to_token = [PAD, UNK]
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
@@ -88,18 +99,21 @@ def main():
     NTAGS = len(id_to_tag)
 
     #### Load pre-trained vectors
+    #### I am assuming these are the 50-dimensional GloVe embeddings in their standard format.
     pretrained = {}
     for line in open(GLOVE):
         parts = line.strip().split()
         word = parts[0]
         vector = [float(v) for v in parts[1:]]
         pretrained[word] = vector
+    #### We will need the word vectors as a list to initialise the embeddings, where each entry in the list corresponds to the token with that index.
     pretrained_list = []
     scale = np.sqrt(3.0 / DIM_EMBEDDING) # From Jiang, Liang and Zhang
     for word in id_to_token:
         if word.lower() in pretrained: # applying lower() here because all GloVe vectors are for lowercase words
             pretrained_list.append(np.array(pretrained[word.lower()]))
         else:
+            #### For words that do not appear in GloVe we generate a random vector (note, the choice of scale here is important).
             random_vector = np.random.uniform(-scale, scale, [DIM_EMBEDDING])
             pretrained_list.append(random_vector)
 

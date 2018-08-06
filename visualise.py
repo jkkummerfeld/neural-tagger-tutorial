@@ -43,19 +43,26 @@ def print_comment_and_code(comment, raw_code):
 def main():
     code = sys.stdin.read()
 
-    print(head)
-
     # Break into sections
     parts = [[]]
     for line in code.split("\n"):
         if line.strip().startswith("####"):
-            if len(parts[-1]) > 0 and (not parts[-1][-1].startswith("####")):
+            if len(parts[-1]) > 0 and (not parts[-1][-1].strip().startswith("####")):
                 parts.append([])
         elif line.startswith("### "):
             continue
-        elif '#' in line:
+        elif len(line) > 2 and '#' in line[1:]:
             line = line.split("#")[0]
         parts[-1].append(line)
+
+    top = parts.pop(0)
+
+    print(head)
+    for line in top:
+        if line.startswith("#### "):
+            line = line[5:]
+            print(line)
+    print("""<div class="main">""")
 
     # Render
     for i, part in enumerate(parts):
@@ -66,12 +73,9 @@ def main():
                 comment.append(line.strip()[4:].strip())
             else:
                 code.append(line)
-        if i > 0:
-            print_comment_and_code(comment, "\n".join(code))
-        else:
-            print("\n".join(comment))
-            print_comment_and_code("", "\n".join(code))
+        print_comment_and_code(comment, "\n".join(code))
 
+    print("""</div>""")
     print(tail)
 
 head = """
@@ -95,6 +99,11 @@ h1 {
     text-align: center;
     padding: 10px;
 }
+div.main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;     /* center items horizontally, in this case */
+}
 div.header {
     color: #36e6e8;
     background: #222222;
@@ -104,7 +113,6 @@ div.header {
     font-size: x-large;
 }
 div.outer {
-    width: 85%;
     clear: both;
 }
 div.description {
@@ -113,13 +121,14 @@ div.description {
     text-align: justify;
     line-height: 112%;
     overflow: hidden;
+    width: 400px;
 }
 code  {
     background: #000000;
     color: #FFFFFF;
     float: right;
-    width: 80ch;
-    padding-left: 10px;
+    width: 100ch;
+    padding-left: 15px;
 }
 td.linenos { background-color: #f0f0f0; padding-right: 10px; }
 span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
@@ -195,8 +204,7 @@ body .il { color: #BC94B7 } /* Literal.Number.Integer.Long */
 </style>
 </head>
 
-<body>
-"""
+<body>"""
 
 tail = """</body>
 </html>"""

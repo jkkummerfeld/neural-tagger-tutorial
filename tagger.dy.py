@@ -1,22 +1,3 @@
-#### <h1>Implementing a neural Part-of-Speech tagger</h1>
-#### <div class=header>
-#### <p>
-#### This is a bare-bones tagger than scores 97.2% on the standard Penn Treebank dataset.
-#### It is written to make it easy to understand how to implement a model in DyNet, PyTorch and Tensorflow, not for clean modularity or flexibility.
-#### The design of this page is motivated by my own preferences - I find interpreting code as an annotated continuous block is more intuitive than interspersing code and comments.
-#### Hopefully you find it informative too!
-#### <p>
-#### </p>
-#### Help from:
-#### <ul>
-#### <li> https://github.com/jiesutd/NCRFpp </li>
-#### <li> https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html </li>
-#### <li> https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py </li>
-#### </ul>
-#### </p>
-#### </div>
-#!/usr/bin/env python3
-
 #### Imports
 #### We use argparse for processing command line arguments, random for shuffling our data, sys for flushing output, and numpy for handling vectors of data.
 import argparse
@@ -29,15 +10,15 @@ import numpy as np
 #### Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here to match Jiang, Liang and Zhang (CoLing 2018).
 PAD = "__PAD__"
 UNK = "__UNK__"
-DIM_EMBEDDING = 100 #### DIM_EMBEDDING - number of dimensions in our word embeddings.
-LSTM_HIDDEN = 100 # based on NCRFpp (200 in the paper, but 100 per direction in code) #### LSTM_HIDDEN - number of dimensions in the hidden vectors for the LSTM.
-BATCH_SIZE = 10 #### BATCH_SIZE - number of examples considered in each model update.
-LEARNING_RATE = 0.015 #### LEARNING_RATE - adjusts how rapidly model parameters change by rescaling the gradient vector.
-LEARNING_DECAY_RATE = 0.05 #### LEARNING_DECAY_RATE - part of a rescaling of the learning rate after each pass through the data.
-EPOCHS = 100 #### EPOCHS - number of passes through the data in training.
-KEEP_PROB = 0.5 #### KEEP_PROB - probability of keeping a value when applying dropout.
-GLOVE = "../data/glove.6B.100d.txt" #### GLOVE - location of glove vectors.
-WEIGHT_DECAY = 1e-8 #### WEIGHT_DECAY - part of a rescaling of weights when an update occurs.
+DIM_EMBEDDING = 100 # DIM_EMBEDDING - number of dimensions in our word embeddings.
+LSTM_HIDDEN = 100 # LSTM_HIDDEN - number of dimensions in the hidden vectors for the LSTM. Based on NCRFpp (200 in the paper, but 100 per direction in code) 
+BATCH_SIZE = 10 # BATCH_SIZE - number of examples considered in each model update.
+LEARNING_RATE = 0.015 # LEARNING_RATE - adjusts how rapidly model parameters change by rescaling the gradient vector.
+LEARNING_DECAY_RATE = 0.05 # LEARNING_DECAY_RATE - part of a rescaling of the learning rate after each pass through the data.
+EPOCHS = 100 # EPOCHS - number of passes through the data in training.
+KEEP_PROB = 0.5 # KEEP_PROB - probability of keeping a value when applying dropout.
+GLOVE = "../data/glove.6B.100d.txt" # GLOVE - location of glove vectors.
+WEIGHT_DECAY = 1e-8 # WEIGHT_DECAY - part of a rescaling of weights when an update occurs.
 
 #### DyNet specfic imports
 #### The first allows us to configure DyNet from within code rather than on the command line:  mem is the amount of system memory initially allocated (DyNet has its own memory management), autobatch toggles automatic parallelisation of computations, weight_decay rescales weights by (1 - decay) after every update, random_seed sets the seed for random number generation.
@@ -74,7 +55,7 @@ def simplify_token(token):
 def main():
     #### Read arguments
     #### For the purpose of this example we only have arguments for locations of the data.
-    parser = argparse.ArgumentParser(description='Dynet tagger.')
+    parser = argparse.ArgumentParser(description='POS tagger.')
     parser.add_argument('training_data')
     parser.add_argument('dev_data')
     args = parser.parse_args()
@@ -93,14 +74,14 @@ def main():
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
-                token_to_id[token] = len(id_to_token)
+                token_to_id[token] = len(token_to_id)
                 id_to_token.append(token)
         for tag in tags:
             if tag not in tag_to_id:
-                tag_to_id[tag] = len(id_to_tag)
+                tag_to_id[tag] = len(tag_to_id)
                 id_to_tag.append(tag)
-    NWORDS = len(id_to_token)
-    NTAGS = len(id_to_tag)
+    NWORDS = len(token_to_id)
+    NTAGS = len(tag_to_id)
 
     #### Load pre-trained vectors
     #### I am assuming these are the 100-dimensional GloVe embeddings in their standard format.
@@ -162,28 +143,31 @@ def main():
     expressions = (pEmbedding, pOutput, f_lstm, b_lstm, trainer)
 
     #### Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.
-    for epoch_no in range(EPOCHS):
+    for epoch in range(EPOCHS):
         random.shuffle(train)
-        trainer.learning_rate = \
-                LEARNING_RATE / (1 + LEARNING_DECAY_RATE * epoch_no)
-        train_loss, train_total, train_match = do_pass(train, token_to_id,
-                tag_to_id, id_to_tag, expressions, True)
-        _, dev_total, dev_match = do_pass(dev, token_to_id, tag_to_id,
-                id_to_tag, expressions)
-        print("epoch {} t-loss {} t-acc {} d-acc {}".format(epoch_no,
-            train_loss, train_match / train_total, dev_match / dev_total))
 
-    # TODO: Save model
+        #### Determine the current learning rate
+        current_lr = LEARNING_RATE / (1+ LEARNING_DECAY_RATE * epoch)
 
-    # TODO: Reload model
+        #### Training pass
+        loss, tacc = do_pass(train, token_to_id, tag_to_id, expressions, True, current_lr)
+        #### Dev pass
+        _, dacc = do_pass(dev, token_to_id, tag_to_id, expressions, False)
+        print("{} loss {} t-acc {} d-acc {}".format(epoch, loss, tacc, dacc))
 
-    #### Do evaluation
-    _, test_total, test_match = do_pass(dev, token_to_id, tag_to_id, id_to_tag,
-            expressions)
-    print("Test Accuracy: {:.3f}".format(test_match / test_total))
+    #### TODO: Save model
 
-def do_pass(data, token_to_id, tag_to_id, id_to_tag, expressions, train=False):
+    #### TODO: Reload model
+
+    #### Evaluation
+    _, test_acc = do_pass(dev, token_to_id, tag_to_id, expressions, False)
+    print("Test Accuracy: {:.3f}".format(test_acc))
+
+#### Inference (the same function for train and test)
+def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
+    #### Get expressions
     pEmbedding, pOutput, f_lstm, b_lstm, trainer = expressions
+    trainer.learning_rate = lr
 
     #### Loop over batches, tracking the start of the batch in the data
     loss = 0
@@ -256,7 +240,7 @@ def do_pass(data, token_to_id, tag_to_id, id_to_tag, expressions, train=False):
                 if gt == at:
                     match += 1
 
-    return loss, total, match
+    return loss, total / match
 
 if __name__ == '__main__':
     main()

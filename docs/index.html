@@ -227,36 +227,14 @@ Making this helped me understand all three frameworks better. Hopefully you find
 
 </pre></div></code>
 </div>
-<div class="outer  shared-content">
-<div class="description shared-content">Constants<br /><br /></div>
+<div class="outer  dynet">
+<div class="description dynet">Constants
+<br />
+Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here to match Jiang, Liang and Zhang (CoLing 2018).<br /><br /></div>
 <code class="tensorflow">
-<div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
-<span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
-<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">LSTM_HIDDEN</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span> 
-<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span> 
-<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span> 
-<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
-<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
-<span class="n">WEIGHT_DECAY</span> <span class="o">=</span> <span class="mf">1e-8</span>
-
-</pre></div></code>
+&nbsp;</code>
 <code class="pytorch">
-<div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
-<span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
-<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">LSTM_HIDDEN</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span> 
-<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span> 
-<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span> 
-<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
-<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
-<span class="n">WEIGHT_DECAY</span> <span class="o">=</span> <span class="mf">1e-8</span>
-
-</pre></div></code>
+&nbsp;</code>
 <code class="dynet">
 <div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
 <span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
@@ -289,6 +267,27 @@ The first allows us to configure DyNet from within code rather than on the comma
 </pre></div></code>
 </div>
 <div class="outer  pytorch">
+<div class="description pytorch">Constants<br /><br /></div>
+<code class="tensorflow">
+&nbsp;</code>
+<code class="pytorch">
+<div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
+<span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
+<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">LSTM_HIDDEN</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span> 
+<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span> 
+<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span> 
+<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
+<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
+<span class="n">WEIGHT_DECAY</span> <span class="o">=</span> <span class="mf">1e-8</span>
+
+</pre></div></code>
+<code class="dynet empty">
+&nbsp;</code>
+</div>
+<div class="outer  pytorch">
 <div class="description pytorch">PyTorch specfic imports<br /><br /></div>
 <code class="tensorflow">
 &nbsp;</code>
@@ -297,6 +296,27 @@ The first allows us to configure DyNet from within code rather than on the comma
 <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 </pre></div></code>
+<code class="dynet empty">
+&nbsp;</code>
+</div>
+<div class="outer  tensorflow">
+<div class="description tensorflow">Constants<br /><br /></div>
+<code class="tensorflow">
+<div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
+<span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
+<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">LSTM_HIDDEN</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span> 
+<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span> 
+<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span> 
+<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
+<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
+<span class="c1"># WEIGHT_DECAY = 1e-8 See note</span>
+
+</pre></div></code>
+<code class="pytorch empty">
+&nbsp;</code>
 <code class="dynet empty">
 &nbsp;</code>
 </div>
@@ -974,7 +994,7 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 </pre></div></code>
 </div>
 <div class="outer  pytorch">
-<div class="description pytorch">Set in training mode, which does things like enable dropout components<br /><br /></div>
+<div class="description pytorch">Set in training mode, which does things like enable dropout components, and initialise the gradient to zero.<br /><br /></div>
 <code class="tensorflow">
 &nbsp;</code>
 <code class="pytorch">
@@ -1037,8 +1057,8 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 <div class="outer  shared-content">
 <div class="description shared-content">Save and load model. Both must be done after the definitions above (ie, the model should be recreated, then have its parameters set to match this saved version).<br /><br /></div>
 <code class="tensorflow">
-<div class="source"><pre><span></span>            <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s2">&quot;tagger.tf.model&quot;</span><span class="p">)</span>
-            <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s2">&quot;tagger.tf.model&quot;</span><span class="p">)</span>
+<div class="source"><pre><span></span>            <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s2">&quot;./tagger.tf.model&quot;</span><span class="p">)</span>
+            <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s2">&quot;./tagger.tf.model&quot;</span><span class="p">)</span>
 
 </pre></div></code>
 <code class="pytorch">
@@ -1099,15 +1119,13 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 <code class="tensorflow">
 &nbsp;</code>
 <code class="pytorch">
-<div class="source"><pre><span></span>        <span class="n">pretrained_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">pretrained_list</span><span class="p">)</span>
-        <span class="c1"># TODO: , sparse=True) Doesn&#39;t work?</span>
+<div class="source"><pre><span></span>        <span class="n">pretrained_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">pretrained_list</span><span class="p">)</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">word_embedding</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
                 <span class="n">pretrained_tensor</span><span class="p">,</span> <span class="n">freeze</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">word_dropout</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">KEEP_PROB</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">lstm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">DIM_EMBEDDING</span><span class="p">,</span> <span class="n">LSTM_HIDDEN</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                 <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">bidirectional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="c1"># TODO: How to do recurrent dropout?</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lstm_output_dropout</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">KEEP_PROB</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">hidden_to_tag</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">LSTM_HIDDEN</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ntags</span><span class="p">)</span>
@@ -1487,7 +1505,7 @@ We pull out the output vector from the cell state at each step.<br /><br /></div
 <code class="pytorch">
 &nbsp;</code>
 <code class="dynet">
-<div class="source"><pre><span></span>                <span class="n">chosen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">npvalue</span><span class="p">())</span>
+<div class="source"><pre><span></span>                <span class="n">chosen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">r_t</span><span class="o">.</span><span class="n">npvalue</span><span class="p">())</span>
                 <span class="n">pred_tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chosen</span><span class="p">)</span>
             <span class="n">predicted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pred_tags</span><span class="p">)</span>
 
@@ -1561,13 +1579,14 @@ We pull out the output vector from the cell state at each step.<br /><br /></div
 &nbsp;</code>
 </div>
 <div class="outer  pytorch">
-<div class="description pytorch">In training we do the backwards pass and apply the update.<br /><br /></div>
+<div class="description pytorch">In training we do the backwards pass, apply the update, and reset the gradient.<br /><br /></div>
 <code class="tensorflow">
 &nbsp;</code>
 <code class="pytorch">
 <div class="source"><pre><span></span>        <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
             <span class="n">batch_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
             <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
 </pre></div>
 </code>
 <code class="dynet empty">
@@ -1724,7 +1743,7 @@ We pull out the output vector from the cell state at each step.<br /><br /></div
                 <span class="k">if</span> <span class="n">gt</span> <span class="o">==</span> <span class="n">at</span><span class="p">:</span>
                     <span class="n">match</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">total</span> <span class="o">/</span> <span class="n">match</span>
+    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">match</span> <span class="o">/</span> <span class="n">total</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
@@ -1738,7 +1757,7 @@ We pull out the output vector from the cell state at each step.<br /><br /></div
                 <span class="k">if</span> <span class="n">gt</span> <span class="o">==</span> <span class="n">at</span><span class="p">:</span>
                     <span class="n">match</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">total</span> <span class="o">/</span> <span class="n">match</span>
+    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">match</span> <span class="o">/</span> <span class="n">total</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
@@ -1752,7 +1771,7 @@ We pull out the output vector from the cell state at each step.<br /><br /></div
                 <span class="k">if</span> <span class="n">gt</span> <span class="o">==</span> <span class="n">at</span><span class="p">:</span>
                     <span class="n">match</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">total</span> <span class="o">/</span> <span class="n">match</span>
+    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">match</span> <span class="o">/</span> <span class="n">total</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
@@ -1838,7 +1857,7 @@ function toggleShared() {
 <p>
 A few miscellaneous notes:
 <ul>
-    <li>PyTorch does not support recurrent dropout directly. For an example of how to achieve it, see <a href="https://github.com/salesforce/awd-lstm-lm/blob/28683b20154fce8e5812aeb6403e35010348c3ea/weight_drop.py">the WeightDrop class</a> from the LSTM and QRNN Language Model Toolkit and <a href="https://github.com/salesforce/awd-lstm-lm/blob/457a422eb46e970a6aad659ca815a04b3d074d6c/model.py#L22">its use</a>.</li>
+    <li>PyTorch 0.4 does not support recurrent dropout directly. For an example of how to achieve it, see the LSTM and QRNN Language Model Toolkit's <a href="https://github.com/salesforce/awd-lstm-lm/blob/28683b20154fce8e5812aeb6403e35010348c3ea/weight_drop.py">the WeightDrop class</a> and <a href="https://github.com/salesforce/awd-lstm-lm/blob/457a422eb46e970a6aad659ca815a04b3d074d6c/model.py#L22">how it is used</a>.</li>
     <li>Tensorflow 1.9 does not support weight decay directly, but <a href="https://github.com/tensorflow/tensorflow/pull/17438">this pull request</a> appears to add support and will be part of 1.10.</li>
 </ul>
 </p>

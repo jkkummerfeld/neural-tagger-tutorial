@@ -70,7 +70,8 @@ def main():
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train + dev: # dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training.
+    #### dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training as they do not occur.
+    for tokens, tags in train + dev:
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
@@ -104,7 +105,6 @@ def main():
 
     ####
     # DyNet model creation
-    #### An object to hold the parameters/weights of the model.
     model = dy.ParameterCollection()
     #### Lookup parameters are a matrix that supports efficient sparse lookup.
     pEmbedding = model.add_lookup_parameters((NWORDS, DIM_EMBEDDING))
@@ -140,15 +140,14 @@ def main():
     trainer = dy.SimpleSGDTrainer(model, learning_rate=LEARNING_RATE)
     trainer.set_clip_threshold(-1)
 
-    #### To make the code match across the three versions, we group together some DyNet specifc values needed when doing a pass over the data.
-    expressions = (pEmbedding, pOutput, f_lstm, b_lstm, trainer)
-
     #### Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.
+    #### To make the code match across the three versions, we group together some framework specifc values needed when doing a pass over the data.
+    expressions = (pEmbedding, pOutput, f_lstm, b_lstm, trainer)
     for epoch in range(EPOCHS):
         random.shuffle(train)
 
         #### Determine the current learning rate
-        current_lr = LEARNING_RATE / (1+ LEARNING_DECAY_RATE * epoch)
+        trainer.learning_rate = LEARNING_RATE / (1+ LEARNING_DECAY_RATE * epoch)
 
         #### Training pass
         loss, tacc = do_pass(train, token_to_id, tag_to_id, expressions, True,
@@ -166,10 +165,8 @@ def main():
     print("Test Accuracy: {:.3f}".format(test_acc))
 
 #### Inference (the same function for train and test)
-def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
-    ####
+def do_pass(data, token_to_id, tag_to_id, expressions, train):
     pEmbedding, pOutput, f_lstm, b_lstm, trainer = expressions
-    trainer.learning_rate = lr
 
     #### Loop over batches, tracking the start of the batch in the data
     loss = 0

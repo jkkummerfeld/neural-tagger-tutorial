@@ -6,6 +6,7 @@ import sys
 import numpy as np
 
 #### Constants
+#### Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here to match Jiang, Liang and Zhang (CoLing 2018).
 PAD = "__PAD__"
 UNK = "__UNK__"
 DIM_EMBEDDING = 100 # DIM_EMBEDDING - number of dimensions in our word embeddings.
@@ -62,7 +63,8 @@ def main():
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train + dev: # dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training.
+    #### dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training as they do not occur.
+    for tokens, tags in train + dev:
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
@@ -96,19 +98,21 @@ def main():
     ####
     # PyTorch model creation
     model = TaggerModel(NWORDS, NTAGS, pretrained_list, id_to_token)
-    decay_calc = lambda epoch: 1 / (1 + LEARNING_DECAY_RATE * epoch)
     optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE,
             weight_decay=WEIGHT_DECAY)
+    #### The learning rate for each epoch is set by multiplying the inital rate by the factor produced by this function.
+    rescale_lr = lambda epoch: 1 / (1 + LEARNING_DECAY_RATE * epoch)
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer,
-            lr_lambda=decay_calc)
-    expressions = (model, optimizer)
+            lr_lambda=rescale_lr)
 
     #### Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.
+    #### To make the code match across the three versions, we group together some framework specifc values needed when doing a pass over the data.
+    expressions = (model, optimizer)
     for epoch in range(EPOCHS):
         random.shuffle(train)
 
         #### Determine the current learning rate
-        scheduler.step() # First call to decay_calc is with a 0, so this should be done here
+        scheduler.step() # First call to rescale_lr is with a 0, so this should be done here
 
         #### Set in training mode, which does things like enable dropout components, and initialise the gradient to zero.
         model.train() 
@@ -184,7 +188,6 @@ class TaggerModel(torch.nn.Module):
 
 #### Inference (the same function for train and test)
 def do_pass(data, token_to_id, tag_to_id, expressions, train):
-    ####
     model, optimizer = expressions
 
     #### Loop over batches, tracking the start of the batch in the data

@@ -184,7 +184,7 @@ The only dependencies are the respective frameworks (DyNet <a href="https://gith
 </p>
 <p>
 The three implementations below all produce part-of-speech taggers that score ~97.2% on the development set of the Penn Treebank.
-The specific hyperparameter choice follows <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a> and matches their performance for the setting without a CRF or character-based word embeddings.
+The specific hyperparameter choices follows <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a> and matches their performance for the setting without a CRF layer or character-based word embeddings.
 </p>
 <p>
 Making this helped me understand all three frameworks better. Hopefully you find it informative too!
@@ -228,14 +228,38 @@ Making this helped me understand all three frameworks better. Hopefully you find
 
 </pre></div></code>
 </div>
-<div class="outer  dynet">
-<div class="description dynet">Constants
+<div class="outer  shared-content">
+<div class="description shared-content">Constants
 <br />
 Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here to match Jiang, Liang and Zhang (CoLing 2018).<br /><br /></div>
 <code class="tensorflow">
-&nbsp;</code>
+<div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
+<span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
+<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">LSTM_HIDDEN</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span> 
+<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span> 
+<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span> 
+<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
+<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
+<span class="c1"># WEIGHT_DECAY = 1e-8 See note</span>
+
+</pre></div></code>
 <code class="pytorch">
-&nbsp;</code>
+<div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
+<span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
+<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">LSTM_HIDDEN</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span> 
+<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span> 
+<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span> 
+<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
+<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
+<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
+<span class="n">WEIGHT_DECAY</span> <span class="o">=</span> <span class="mf">1e-8</span>
+
+</pre></div></code>
 <code class="dynet">
 <div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
 <span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
@@ -268,27 +292,6 @@ The first allows us to configure DyNet from within code rather than on the comma
 </pre></div></code>
 </div>
 <div class="outer  pytorch">
-<div class="description pytorch">Constants<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-<div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
-<span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
-<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">LSTM_HIDDEN</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span> 
-<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span> 
-<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span> 
-<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
-<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
-<span class="n">WEIGHT_DECAY</span> <span class="o">=</span> <span class="mf">1e-8</span>
-
-</pre></div></code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  pytorch">
 <div class="description pytorch">PyTorch specfic imports<br /><br /></div>
 <code class="tensorflow">
 &nbsp;</code>
@@ -297,27 +300,6 @@ The first allows us to configure DyNet from within code rather than on the comma
 <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 </pre></div></code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  tensorflow">
-<div class="description tensorflow">Constants<br /><br /></div>
-<code class="tensorflow">
-<div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
-<span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
-<span class="n">DIM_EMBEDDING</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">LSTM_HIDDEN</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">10</span> 
-<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.015</span> 
-<span class="n">LEARNING_DECAY_RATE</span> <span class="o">=</span> <span class="mf">0.05</span> 
-<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
-<span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
-<span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
-<span class="c1"># WEIGHT_DECAY = 1e-8 See note</span>
-
-</pre></div></code>
-<code class="pytorch empty">
-&nbsp;</code>
 <code class="dynet empty">
 &nbsp;</code>
 </div>
@@ -471,7 +453,27 @@ The first allows us to configure DyNet from within code rather than on the comma
     <span class="n">token_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">UNK</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
     <span class="n">id_to_tag</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">]</span>
     <span class="n">tag_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
-    <span class="k">for</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">train</span> <span class="o">+</span> <span class="n">dev</span><span class="p">:</span> 
+</pre></div>
+</code>
+<code class="pytorch">
+<div class="source"><pre><span></span>    <span class="n">id_to_token</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">,</span> <span class="n">UNK</span><span class="p">]</span>
+    <span class="n">token_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">UNK</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="n">id_to_tag</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">]</span>
+    <span class="n">tag_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</code>
+<code class="dynet">
+<div class="source"><pre><span></span>    <span class="n">id_to_token</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">,</span> <span class="n">UNK</span><span class="p">]</span>
+    <span class="n">token_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">UNK</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="n">id_to_tag</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">]</span>
+    <span class="n">tag_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</code>
+</div>
+<div class="outer  shared-content">
+<div class="description shared-content">dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training as they do not occur.<br /><br /></div>
+<code class="tensorflow">
+<div class="source"><pre><span></span>    <span class="k">for</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">train</span> <span class="o">+</span> <span class="n">dev</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
             <span class="n">token</span> <span class="o">=</span> <span class="n">simplify_token</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">token_to_id</span><span class="p">:</span>
@@ -486,11 +488,7 @@ The first allows us to configure DyNet from within code rather than on the comma
 
 </pre></div></code>
 <code class="pytorch">
-<div class="source"><pre><span></span>    <span class="n">id_to_token</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">,</span> <span class="n">UNK</span><span class="p">]</span>
-    <span class="n">token_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">UNK</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
-    <span class="n">id_to_tag</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">]</span>
-    <span class="n">tag_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
-    <span class="k">for</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">train</span> <span class="o">+</span> <span class="n">dev</span><span class="p">:</span> 
+<div class="source"><pre><span></span>    <span class="k">for</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">train</span> <span class="o">+</span> <span class="n">dev</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
             <span class="n">token</span> <span class="o">=</span> <span class="n">simplify_token</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">token_to_id</span><span class="p">:</span>
@@ -505,11 +503,7 @@ The first allows us to configure DyNet from within code rather than on the comma
 
 </pre></div></code>
 <code class="dynet">
-<div class="source"><pre><span></span>    <span class="n">id_to_token</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">,</span> <span class="n">UNK</span><span class="p">]</span>
-    <span class="n">token_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">UNK</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
-    <span class="n">id_to_tag</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">]</span>
-    <span class="n">tag_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
-    <span class="k">for</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">train</span> <span class="o">+</span> <span class="n">dev</span><span class="p">:</span> 
+<div class="source"><pre><span></span>    <span class="k">for</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">train</span> <span class="o">+</span> <span class="n">dev</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
             <span class="n">token</span> <span class="o">=</span> <span class="n">simplify_token</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">token_to_id</span><span class="p">:</span>
@@ -610,17 +604,7 @@ The first allows us to configure DyNet from within code rather than on the comma
 &nbsp;</code>
 <code class="dynet">
 <div class="source"><pre><span></span>    <span class="c1"># DyNet model creation</span>
-</pre></div>
-</code>
-</div>
-<div class="outer  dynet">
-<div class="description dynet">An object to hold the parameters/weights of the model.<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-&nbsp;</code>
-<code class="dynet">
-<div class="source"><pre><span></span>    <span class="n">model</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">ParameterCollection</span><span class="p">()</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">ParameterCollection</span><span class="p">()</span>
 </pre></div>
 </code>
 </div>
@@ -710,17 +694,6 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 
 </pre></div></code>
 </div>
-<div class="outer  dynet">
-<div class="description dynet">To make the code match across the three versions, we group together some DyNet specifc values needed when doing a pass over the data.<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-&nbsp;</code>
-<code class="dynet">
-<div class="source"><pre><span></span>    <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">pEmbedding</span><span class="p">,</span> <span class="n">pOutput</span><span class="p">,</span> <span class="n">f_lstm</span><span class="p">,</span> <span class="n">b_lstm</span><span class="p">,</span> <span class="n">trainer</span><span class="p">)</span>
-
-</pre></div></code>
-</div>
 <div class="outer  pytorch">
 <div class="description pytorch"><br /><br /></div>
 <code class="tensorflow">
@@ -728,15 +701,24 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 <code class="pytorch">
 <div class="source"><pre><span></span>    <span class="c1"># PyTorch model creation</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">TaggerModel</span><span class="p">(</span><span class="n">NWORDS</span><span class="p">,</span> <span class="n">NTAGS</span><span class="p">,</span> <span class="n">pretrained_list</span><span class="p">,</span> <span class="n">id_to_token</span><span class="p">)</span>
-    <span class="n">decay_calc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">epoch</span><span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
     <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">LEARNING_RATE</span><span class="p">,</span>
             <span class="n">weight_decay</span><span class="o">=</span><span class="n">WEIGHT_DECAY</span><span class="p">)</span>
+</pre></div>
+</code>
+<code class="dynet">
+&nbsp;</code>
+</div>
+<div class="outer  pytorch">
+<div class="description pytorch">The learning rate for each epoch is set by multiplying the inital rate by the factor produced by this function.<br /><br /></div>
+<code class="tensorflow">
+&nbsp;</code>
+<code class="pytorch">
+<div class="source"><pre><span></span>    <span class="n">rescale_lr</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">epoch</span><span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
     <span class="n">scheduler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">LambdaLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span>
-            <span class="n">lr_lambda</span><span class="o">=</span><span class="n">decay_calc</span><span class="p">)</span>
-    <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">)</span>
+            <span class="n">lr_lambda</span><span class="o">=</span><span class="n">rescale_lr</span><span class="p">)</span>
 
 </pre></div></code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 </div>
 <div class="outer  tensorflow">
@@ -890,7 +872,8 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 <code class="tensorflow">
 <div class="source"><pre><span></span>        <span class="c1"># e_optimiser = tf.train.GradientDescentOptimizer(LEARNING_RATE)</span>
         <span class="c1"># e_gradients = e_optimiser.compute_gradients(e_loss)</span>
-        <span class="c1"># e_clipped_gradients = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in e_gradients]</span>
+        <span class="c1"># e_clipped_gradients = [(tf.clip_by_value(grad, -5., 5.), var)</span>
+        <span class="c1">#         for grad, var in e_gradients]</span>
         <span class="c1"># e_train = e_optimiser.apply_gradients(e_gradients)</span>
 
 </pre></div></code>
@@ -947,34 +930,28 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 <code class="dynet empty">
 &nbsp;</code>
 </div>
-<div class="outer  tensorflow">
-<div class="description tensorflow">We are grouping these together for easy passing in to our function below. In practise you would want to have a class holding them.<br /><br /></div>
+<div class="outer  shared-content">
+<div class="description shared-content">Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.
+<br />
+To make the code match across the three versions, we group together some framework specifc values needed when doing a pass over the data.<br /><br /></div>
 <code class="tensorflow">
 <div class="source"><pre><span></span>            <span class="n">expressions</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">e_auto_output</span><span class="p">,</span> <span class="n">e_gold_output</span><span class="p">,</span> <span class="n">e_input</span><span class="p">,</span> <span class="n">e_keep_prob</span><span class="p">,</span> <span class="n">e_lengths</span><span class="p">,</span>
                 <span class="n">e_loss</span><span class="p">,</span> <span class="n">e_train</span><span class="p">,</span> <span class="n">e_mask</span><span class="p">,</span> <span class="n">e_learning_rate</span><span class="p">,</span> <span class="n">sess</span>
             <span class="p">]</span>
-</pre></div>
-</code>
-<code class="pytorch empty">
-&nbsp;</code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  shared-content">
-<div class="description shared-content">Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.<br /><br /></div>
-<code class="tensorflow">
-<div class="source"><pre><span></span>            <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EPOCHS</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EPOCHS</span><span class="p">):</span>
                 <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
 
 </pre></div></code>
 <code class="pytorch">
-<div class="source"><pre><span></span>    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EPOCHS</span><span class="p">):</span>
+<div class="source"><pre><span></span>    <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EPOCHS</span><span class="p">):</span>
         <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
 
 </pre></div></code>
 <code class="dynet">
-<div class="source"><pre><span></span>    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EPOCHS</span><span class="p">):</span>
+<div class="source"><pre><span></span>    <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">pEmbedding</span><span class="p">,</span> <span class="n">pOutput</span><span class="p">,</span> <span class="n">f_lstm</span><span class="p">,</span> <span class="n">b_lstm</span><span class="p">,</span> <span class="n">trainer</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EPOCHS</span><span class="p">):</span>
         <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
 
 </pre></div></code>
@@ -990,7 +967,7 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 
 </pre></div></code>
 <code class="dynet">
-<div class="source"><pre><span></span>        <span class="n">current_lr</span> <span class="o">=</span> <span class="n">LEARNING_RATE</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
+<div class="source"><pre><span></span>        <span class="n">trainer</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">LEARNING_RATE</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
 
 </pre></div></code>
 </div>
@@ -1040,7 +1017,8 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 <code class="tensorflow">
 <div class="source"><pre><span></span>                <span class="n">_</span><span class="p">,</span> <span class="n">dacc</span> <span class="o">=</span> <span class="n">do_pass</span><span class="p">(</span><span class="n">dev</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span>
                         <span class="bp">False</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;{} loss {} t-acc {} d-acc {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">tacc</span><span class="p">,</span> <span class="n">dacc</span><span class="p">))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;{} loss {} t-acc {} d-acc {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">tacc</span><span class="p">,</span>
+                    <span class="n">dacc</span><span class="p">))</span>
 
 </pre></div></code>
 <code class="pytorch">
@@ -1258,51 +1236,20 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 <div class="description shared-content">Inference (the same function for train and test)<br /><br /></div>
 <code class="tensorflow">
 <div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
-</pre></div>
-</code>
-<code class="pytorch">
-<div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">):</span>
-</pre></div>
-</code>
-<code class="dynet">
-<div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
-</pre></div>
-</code>
-</div>
-<div class="outer  dynet">
-<div class="description dynet"><br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-&nbsp;</code>
-<code class="dynet">
-<div class="source"><pre><span></span>    <span class="n">pEmbedding</span><span class="p">,</span> <span class="n">pOutput</span><span class="p">,</span> <span class="n">f_lstm</span><span class="p">,</span> <span class="n">b_lstm</span><span class="p">,</span> <span class="n">trainer</span> <span class="o">=</span> <span class="n">expressions</span>
-    <span class="n">trainer</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">lr</span>
-
-</pre></div></code>
-</div>
-<div class="outer  pytorch">
-<div class="description pytorch"><br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-<div class="source"><pre><span></span>    <span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span> <span class="o">=</span> <span class="n">expressions</span>
-
-</pre></div></code>
-<code class="dynet">
-&nbsp;</code>
-</div>
-<div class="outer  tensorflow">
-<div class="description tensorflow"><br /><br /></div>
-<code class="tensorflow">
-<div class="source"><pre><span></span>    <span class="n">e_auto_output</span><span class="p">,</span> <span class="n">e_gold_output</span><span class="p">,</span> <span class="n">e_input</span><span class="p">,</span> <span class="n">e_keep_prob</span><span class="p">,</span> <span class="n">e_lengths</span><span class="p">,</span> <span class="n">e_loss</span><span class="p">,</span> \
+    <span class="n">e_auto_output</span><span class="p">,</span> <span class="n">e_gold_output</span><span class="p">,</span> <span class="n">e_input</span><span class="p">,</span> <span class="n">e_keep_prob</span><span class="p">,</span> <span class="n">e_lengths</span><span class="p">,</span> <span class="n">e_loss</span><span class="p">,</span> \
             <span class="n">e_train</span><span class="p">,</span> <span class="n">e_mask</span><span class="p">,</span> <span class="n">e_learning_rate</span><span class="p">,</span> <span class="n">session</span> <span class="o">=</span> <span class="n">expressions</span>
 
 </pre></div></code>
 <code class="pytorch">
-&nbsp;</code>
+<div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">):</span>
+    <span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span> <span class="o">=</span> <span class="n">expressions</span>
+
+</pre></div></code>
 <code class="dynet">
-&nbsp;</code>
+<div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">):</span>
+    <span class="n">pEmbedding</span><span class="p">,</span> <span class="n">pOutput</span><span class="p">,</span> <span class="n">f_lstm</span><span class="p">,</span> <span class="n">b_lstm</span><span class="p">,</span> <span class="n">trainer</span> <span class="o">=</span> <span class="n">expressions</span>
+
+</pre></div></code>
 </div>
 <div class="outer  shared-content">
 <div class="description shared-content">Loop over batches, tracking the start of the batch in the data<br /><br /></div>

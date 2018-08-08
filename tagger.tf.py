@@ -6,6 +6,7 @@ import sys
 import numpy as np
 
 #### Constants
+#### Typically, we would make many of these command line arguments and tune using the development set. For simplicity, I have fixed their values here to match Jiang, Liang and Zhang (CoLing 2018).
 PAD = "__PAD__"
 UNK = "__UNK__"
 DIM_EMBEDDING = 100 # DIM_EMBEDDING - number of dimensions in our word embeddings.
@@ -61,7 +62,8 @@ def main():
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
     tag_to_id = {PAD: 0}
-    for tokens, tags in train + dev: # dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training.
+    #### dev is necessary here to get the GloVe embeddings for words in dev but not train loaded. They will not be updated during training as they do not occur.
+    for tokens, tags in train + dev:
         for token in tokens:
             token = simplify_token(token)
             if token not in token_to_id:
@@ -146,7 +148,8 @@ def main():
         #### Update computation - multi-step, so that (for example) gradient clipping can be applied
         # e_optimiser = tf.train.GradientDescentOptimizer(LEARNING_RATE)
         # e_gradients = e_optimiser.compute_gradients(e_loss)
-        # e_clipped_gradients = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in e_gradients]
+        # e_clipped_gradients = [(tf.clip_by_value(grad, -5., 5.), var)
+        #         for grad, var in e_gradients]
         # e_train = e_optimiser.apply_gradients(e_gradients)
 
         #### Get the predicted label
@@ -163,13 +166,12 @@ def main():
             #### Initialise all variables
             sess.run(tf.global_variables_initializer())
 
-            #### We are grouping these together for easy passing in to our function below. In practise you would want to have a class holding them.
+            #### Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.
+            #### To make the code match across the three versions, we group together some framework specifc values needed when doing a pass over the data.
             expressions = [
                 e_auto_output, e_gold_output, e_input, e_keep_prob, e_lengths,
                 e_loss, e_train, e_mask, e_learning_rate, sess
             ]
-        
-            #### Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.
             for epoch in range(EPOCHS):
                 random.shuffle(train)
 
@@ -182,7 +184,8 @@ def main():
                 #### Dev pass
                 _, dacc = do_pass(dev, token_to_id, tag_to_id, expressions,
                         False)
-                print("{} loss {} t-acc {} d-acc {}".format(epoch, loss, tacc, dacc))
+                print("{} loss {} t-acc {} d-acc {}".format(epoch, loss, tacc,
+                    dacc))
 
             #### Save and load model. Both must be done after the definitions above (ie, the model should be recreated, then have its parameters set to match this saved version).
             saver.save(sess, "./tagger.tf.model")
@@ -195,7 +198,6 @@ def main():
 
 #### Inference (the same function for train and test)
 def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
-    ####
     e_auto_output, e_gold_output, e_input, e_keep_prob, e_lengths, e_loss, \
             e_train, e_mask, e_learning_rate, session = expressions
 

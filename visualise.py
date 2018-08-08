@@ -349,7 +349,7 @@ The only dependencies are the respective frameworks (DyNet <a href="https://gith
 </p>
 <p>
 The three implementations below all produce part-of-speech taggers that score ~97.2% on the development set of the Penn Treebank.
-The specific hyperparameter choice follows <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a> and matches their performance for the setting without a CRF or character-based word embeddings.
+The specific hyperparameter choices follows <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a> and matches their performance for the setting without a CRF layer or character-based word embeddings.
 </p>
 <p>
 Making this helped me understand all three frameworks better. Hopefully you find it informative too!

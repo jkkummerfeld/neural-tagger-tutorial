@@ -344,7 +344,8 @@ For a non-tutorial version it would be better to use abstraction to improve flex
 Use the buttons to show one or more implementations and their associated comments.
 Shared content is repeated and aligned.
 Implementation-specific content is shown with empty space for the other implementations and lines to make the link from a comment to the code clear.
-If you would like to copy large chunks of the code, go to <a href="https://github.com/jkkummerfeld/neural-tagger-tutorial">the repository</a> for this page.
+The <a href="https://github.com/jkkummerfeld/neural-tagger-tutorial">repository</a> for this page provides the code in runnable form.
+The only dependencies are the respective frameworks (DyNet <a href="https://github.com/clab/dynet/releases/tag/2.0.3">2.0.3</a>, PyTorch <a href="https://github.com/pytorch/pytorch/releases/tag/v0.4.1">0.4.1</a> and Tensorflow <a href="https://github.com/tensorflow/tensorflow/releases/tag/v1.9.0">1.9.0</a>).
 </p>
 <p>
 The three implementations below all produce part-of-speech taggers that score ~97.2% on the development set of the Penn Treebank.

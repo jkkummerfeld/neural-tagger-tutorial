@@ -107,17 +107,16 @@ def main():
     for epoch in range(EPOCHS):
         random.shuffle(train)
 
-        #### Update learning rate. The current_lr is a dummy value to match the other frameworks
-        scheduler.step() # The first call to decay_calc is with a 0, so this should be done here
-        current_lr = -1
+        #### Determine the current learning rate
+        scheduler.step() # First call to decay_calc is with a 0, so this should be done here
 
         #### Set in training mode, which does things like enable dropout components
         model.train() 
-        #### Set all gradients to 0
         model.zero_grad()
         #### Training pass
         loss, tacc = do_pass(train, token_to_id, tag_to_id, expressions,
-                True, current_lr)
+                True)
+
         #### Set in evaluation mode, which does things like disable dropout components
         model.eval() 
         #### Dev pass
@@ -125,9 +124,9 @@ def main():
         print("{} loss {} t-acc {} d-acc {}".format(epoch, loss,
             tacc, dacc))
 
-    #### TODO: Save model
-
-    #### TODO: Reload model
+    #### Save and load model. Both must be done after the definitions above (ie, the model should be recreated, then have its parameters set to match this saved version).
+    torch.save(model.state_dict(), "tagger.pt.model")
+    model.load_state_dict(torch.load('tagger.pt.model'))
 
     #### Evaluation
     _, test_acc = do_pass(dev, token_to_id, tag_to_id, expressions, False)
@@ -140,15 +139,13 @@ class TaggerModel(torch.nn.Module):
         super().__init__()
 
         #### Convert the word embeddings into a PyTorch tensor
-        pretrained_tensor = torch.FloatTensor(pretrained_list)
-        #### TODO: , sparse=True) Doesn't work?
+        pretrained_tensor = torch.FloatTensor(pretrained_list) # TODO: , sparse=True) Doesn't work?
         self.word_embedding = torch.nn.Embedding.from_pretrained(
                 pretrained_tensor, freeze=False)
         self.word_dropout = torch.nn.Dropout(1 - KEEP_PROB)
 
         self.lstm = torch.nn.LSTM(DIM_EMBEDDING, LSTM_HIDDEN, num_layers=1,
                 batch_first=True, bidirectional=True)
-        #### TODO: How to do recurrent dropout?
         self.lstm_output_dropout = torch.nn.Dropout(1 - KEEP_PROB)
 
         self.hidden_to_tag = torch.nn.Linear(LSTM_HIDDEN * 2, ntags)
@@ -186,7 +183,7 @@ class TaggerModel(torch.nn.Module):
         return loss, predicted_tags
 
 #### Inference (the same function for train and test)
-def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
+def do_pass(data, token_to_id, tag_to_id, expressions, train):
     ####
     model, optimizer = expressions
 
@@ -227,7 +224,6 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
         if train:
             batch_loss.backward()
             optimizer.step()
-            model.zero_grad()
             #### To get the loss value we use .item().
             loss += batch_loss.item()
         #### Our output is an array (rather than a single value), so we use a different approach to get it into a usable form.

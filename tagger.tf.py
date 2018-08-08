@@ -16,7 +16,7 @@ LEARNING_DECAY_RATE = 0.05 # LEARNING_DECAY_RATE - part of a rescaling of the le
 EPOCHS = 100 # EPOCHS - number of passes through the data in training.
 KEEP_PROB = 0.5 # KEEP_PROB - probability of keeping a value when applying dropout.
 GLOVE = "../data/glove.6B.100d.txt" # GLOVE - location of glove vectors.
-WEIGHT_DECAY = 1e-8 # WEIGHT_DECAY - part of a rescaling of weights when an update occurs.  TODO apply as L2 regularization
+# WEIGHT_DECAY = 1e-8 See note
 
 #### Tensorflow specfic import
 import tensorflow as tf
@@ -92,6 +92,7 @@ def main():
             random_vector = np.random.uniform(-scale, scale, [DIM_EMBEDDING])
             pretrained_list.append(random_vector)
 
+    ####
     # Tensorflow computation graph definition
     with tf.Graph().as_default():
         #### Placeholders are inputs/values that will be fed into the network each time it is run. We define their type and the shape (constant, 1D vector, 2D vector, etc). This includes what we normally think of as inputs (e.g. the tokens) as well as parameters we want to change at run time (e.g. the learning rate).
@@ -183,11 +184,9 @@ def main():
                         False)
                 print("{} loss {} t-acc {} d-acc {}".format(epoch, loss, tacc, dacc))
 
-            #### Save model
-            # saver.save(sess, "checkpoints/tagger.ckpt")
-
-            #### Reload model
-            # saver.restore(sess, tf.train.latest_checkpoint(model_dir))
+            #### Save and load model. Both must be done after the definitions above (ie, the model should be recreated, then have its parameters set to match this saved version).
+            saver.save(sess, "tagger.tf.model")
+            saver.restore(sess, "tagger.tf.model")
 
             #### Evaluation
             _, test_acc = do_pass(dev, token_to_id, tag_to_id, expressions,

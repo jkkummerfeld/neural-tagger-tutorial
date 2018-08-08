@@ -151,14 +151,15 @@ def main():
         current_lr = LEARNING_RATE / (1+ LEARNING_DECAY_RATE * epoch)
 
         #### Training pass
-        loss, tacc = do_pass(train, token_to_id, tag_to_id, expressions, True, current_lr)
+        loss, tacc = do_pass(train, token_to_id, tag_to_id, expressions, True,
+                current_lr)
         #### Dev pass
         _, dacc = do_pass(dev, token_to_id, tag_to_id, expressions, False)
         print("{} loss {} t-acc {} d-acc {}".format(epoch, loss, tacc, dacc))
 
-    #### TODO: Save model
-
-    #### TODO: Reload model
+    #### Save and load model. Both must be done after the definitions above (ie, the model should be recreated, then have its parameters set to match this saved version).
+    model.save("tagger.dy.model")
+    model.populate("tagger.dy.model")
 
     #### Evaluation
     _, test_acc = do_pass(dev, token_to_id, tag_to_id, expressions, False)

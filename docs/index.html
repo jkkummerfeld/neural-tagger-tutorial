@@ -79,8 +79,10 @@ a {
     color: #00a1d6;
 }
 .button {
+    cursor: pointer;
     background-color: #008CBA;
     border: 10px;
+    margin: 5px;
     color: white;
     padding: 15px 32px;
     text-align: center;
@@ -188,9 +190,9 @@ Making this helped me understand all three frameworks better. Hopefully you find
 </p>
 
 <div class="buttons">
-<button class="button" id="dybutton" onclick="toggleDyNet()">Hide DyNet</button>
-<button class="button" id="ptbutton" onclick="togglePyTorch()">Hide PyTorch</button>
-<button class="button" id="tfbutton" onclick="toggleTensorflow()">Hide Tensorflow</button>
+<button class="button" id="dybutton" onmouseover="" onclick="toggleDyNet()">Hide DyNet</button>
+<button class="button" id="ptbutton" onmouseover="" onclick="togglePyTorch()">Hide PyTorch</button>
+<button class="button" id="tfbutton" onmouseover="" onclick="toggleTensorflow()">Hide Tensorflow</button>
 </div>
 </div>
 
@@ -561,12 +563,18 @@ The first allows us to configure DyNet from within code rather than on the comma
 </pre></div>
 </code>
 </div>
-<div class="outer  dynet">
-<div class="description dynet">For words that do not appear in GloVe we generate a random vector (note, the choice of scale here is important).<br /><br /></div>
+<div class="outer  shared-content">
+<div class="description shared-content">For words that do not appear in GloVe we generate a random vector (note, the choice of scale here is important).<br /><br /></div>
 <code class="tensorflow">
-&nbsp;</code>
+<div class="source"><pre><span></span>            <span class="n">random_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="p">[</span><span class="n">DIM_EMBEDDING</span><span class="p">])</span>
+            <span class="n">pretrained_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random_vector</span><span class="p">)</span>
+
+</pre></div></code>
 <code class="pytorch">
-&nbsp;</code>
+<div class="source"><pre><span></span>            <span class="n">random_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="p">[</span><span class="n">DIM_EMBEDDING</span><span class="p">])</span>
+            <span class="n">pretrained_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random_vector</span><span class="p">)</span>
+
+</pre></div></code>
 <code class="dynet">
 <div class="source"><pre><span></span>            <span class="n">random_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="p">[</span><span class="n">DIM_EMBEDDING</span><span class="p">])</span>
             <span class="n">pretrained_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random_vector</span><span class="p">)</span>
@@ -693,18 +701,6 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 </pre></div></code>
 </div>
 <div class="outer  pytorch">
-<div class="description pytorch">For words that do not appear in GloVe we generate a random vector (note, the choice of scale here is important).<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-<div class="source"><pre><span></span>            <span class="n">random_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="p">[</span><span class="n">DIM_EMBEDDING</span><span class="p">])</span>
-            <span class="n">pretrained_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random_vector</span><span class="p">)</span>
-
-</pre></div></code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  pytorch">
 <div class="description pytorch"><br /><br /></div>
 <code class="tensorflow">
 &nbsp;</code>
@@ -719,22 +715,19 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
     <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">)</span>
 
 </pre></div></code>
-<code class="dynet empty">
+<code class="dynet">
 &nbsp;</code>
 </div>
 <div class="outer  tensorflow">
-<div class="description tensorflow">For words that do not appear in GloVe we generate a random vector (note, the choice of scale here is important).<br /><br /></div>
+<div class="description tensorflow"><br /><br /></div>
 <code class="tensorflow">
-<div class="source"><pre><span></span>            <span class="n">random_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="p">[</span><span class="n">DIM_EMBEDDING</span><span class="p">])</span>
-            <span class="n">pretrained_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random_vector</span><span class="p">)</span>
-
-    <span class="c1"># Tensorflow computation graph definition</span>
+<div class="source"><pre><span></span>    <span class="c1"># Tensorflow computation graph definition</span>
     <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span><span class="o">.</span><span class="n">as_default</span><span class="p">():</span>
 </pre></div>
 </code>
-<code class="pytorch empty">
+<code class="pytorch">
 &nbsp;</code>
-<code class="dynet empty">
+<code class="dynet">
 &nbsp;</code>
 </div>
 <div class="outer  tensorflow">
@@ -965,59 +958,30 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 
 </pre></div></code>
 </div>
-<div class="outer  dynet">
-<div class="description dynet">Determine the current learning rate<br /><br /></div>
+<div class="outer  shared-content">
+<div class="description shared-content">Determine the current learning rate<br /><br /></div>
 <code class="tensorflow">
-&nbsp;</code>
+<div class="source"><pre><span></span>                <span class="n">current_lr</span> <span class="o">=</span> <span class="n">LEARNING_RATE</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
+
+</pre></div></code>
 <code class="pytorch">
-&nbsp;</code>
+<div class="source"><pre><span></span>        <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+</pre></div></code>
 <code class="dynet">
 <div class="source"><pre><span></span>        <span class="n">current_lr</span> <span class="o">=</span> <span class="n">LEARNING_RATE</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
 
 </pre></div></code>
 </div>
 <div class="outer  pytorch">
-<div class="description pytorch">Update learning rate. The current_lr is a dummy value to match the other frameworks<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-<div class="source"><pre><span></span>        <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span> 
-        <span class="n">current_lr</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-
-</pre></div></code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  pytorch">
 <div class="description pytorch">Set in training mode, which does things like enable dropout components<br /><br /></div>
 <code class="tensorflow">
 &nbsp;</code>
 <code class="pytorch">
-<div class="source"><pre><span></span>        <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<div class="source"><pre><span></span>        <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span> 
+        <span class="n">model</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
 </pre></div>
 </code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  pytorch">
-<div class="description pytorch">Set all gradients to 0<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-<div class="source"><pre><span></span>        <span class="n">model</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-</pre></div>
-</code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  tensorflow">
-<div class="description tensorflow">Determine the current learning rate<br /><br /></div>
-<code class="tensorflow">
-<div class="source"><pre><span></span>                <span class="n">current_lr</span> <span class="o">=</span> <span class="n">LEARNING_RATE</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
-
-</pre></div></code>
-<code class="pytorch empty">
-&nbsp;</code>
 <code class="dynet empty">
 &nbsp;</code>
 </div>
@@ -1030,11 +994,12 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 </code>
 <code class="pytorch">
 <div class="source"><pre><span></span>        <span class="n">loss</span><span class="p">,</span> <span class="n">tacc</span> <span class="o">=</span> <span class="n">do_pass</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span>
-                <span class="bp">True</span><span class="p">,</span> <span class="n">current_lr</span><span class="p">)</span>
-</pre></div>
-</code>
+                <span class="bp">True</span><span class="p">)</span>
+
+</pre></div></code>
 <code class="dynet">
-<div class="source"><pre><span></span>        <span class="n">loss</span><span class="p">,</span> <span class="n">tacc</span> <span class="o">=</span> <span class="n">do_pass</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">current_lr</span><span class="p">)</span>
+<div class="source"><pre><span></span>        <span class="n">loss</span><span class="p">,</span> <span class="n">tacc</span> <span class="o">=</span> <span class="n">do_pass</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="n">current_lr</span><span class="p">)</span>
 </pre></div>
 </code>
 </div>
@@ -1069,71 +1034,23 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 
 </pre></div></code>
 </div>
-<div class="outer  dynet">
-<div class="description dynet">TODO: Save model<br /><br /></div>
+<div class="outer  shared-content">
+<div class="description shared-content">Save and load model. Both must be done after the definitions above (ie, the model should be recreated, then have its parameters set to match this saved version).<br /><br /></div>
 <code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-&nbsp;</code>
-<code class="dynet">
-<div class="source"><pre><span></span>
-</pre></div>
-</code>
-</div>
-<div class="outer  dynet">
-<div class="description dynet">TODO: Reload model<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-&nbsp;</code>
-<code class="dynet">
-<div class="source"><pre><span></span>
-</pre></div>
-</code>
-</div>
-<div class="outer  pytorch">
-<div class="description pytorch">TODO: Save model<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-<div class="source"><pre><span></span>
-</pre></div>
-</code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  pytorch">
-<div class="description pytorch">TODO: Reload model<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-<div class="source"><pre><span></span>
-</pre></div>
-</code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  tensorflow">
-<div class="description tensorflow">Save model<br /><br /></div>
-<code class="tensorflow">
-<div class="source"><pre><span></span>            <span class="c1"># saver.save(sess, &quot;checkpoints/tagger.ckpt&quot;)</span>
+<div class="source"><pre><span></span>            <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s2">&quot;tagger.tf.model&quot;</span><span class="p">)</span>
+            <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s2">&quot;tagger.tf.model&quot;</span><span class="p">)</span>
 
 </pre></div></code>
-<code class="pytorch empty">
-&nbsp;</code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  tensorflow">
-<div class="description tensorflow">Reload model<br /><br /></div>
-<code class="tensorflow">
-<div class="source"><pre><span></span>            <span class="c1"># saver.restore(sess, tf.train.latest_checkpoint(model_dir))</span>
+<code class="pytorch">
+<div class="source"><pre><span></span>    <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="s2">&quot;tagger.pt.model&quot;</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;tagger.pt.model&#39;</span><span class="p">))</span>
 
 </pre></div></code>
-<code class="pytorch empty">
-&nbsp;</code>
-<code class="dynet empty">
-&nbsp;</code>
+<code class="dynet">
+<div class="source"><pre><span></span>    <span class="n">model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;tagger.dy.model&quot;</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">populate</span><span class="p">(</span><span class="s2">&quot;tagger.dy.model&quot;</span><span class="p">)</span>
+
+</pre></div></code>
 </div>
 <div class="outer  shared-content">
 <div class="description shared-content">Evaluation<br /><br /></div>
@@ -1183,33 +1100,15 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 &nbsp;</code>
 <code class="pytorch">
 <div class="source"><pre><span></span>        <span class="n">pretrained_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">pretrained_list</span><span class="p">)</span>
-</pre></div>
-</code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  pytorch">
-<div class="description pytorch">TODO: , sparse=True) Doesn't work?<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-<div class="source"><pre><span></span>        <span class="bp">self</span><span class="o">.</span><span class="n">word_embedding</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+        <span class="c1"># TODO: , sparse=True) Doesn&#39;t work?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">word_embedding</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
                 <span class="n">pretrained_tensor</span><span class="p">,</span> <span class="n">freeze</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">word_dropout</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">KEEP_PROB</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">lstm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">DIM_EMBEDDING</span><span class="p">,</span> <span class="n">LSTM_HIDDEN</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                 <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">bidirectional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</pre></div>
-</code>
-<code class="dynet empty">
-&nbsp;</code>
-</div>
-<div class="outer  pytorch">
-<div class="description pytorch">TODO: How to do recurrent dropout?<br /><br /></div>
-<code class="tensorflow">
-&nbsp;</code>
-<code class="pytorch">
-<div class="source"><pre><span></span>        <span class="bp">self</span><span class="o">.</span><span class="n">lstm_output_dropout</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">KEEP_PROB</span><span class="p">)</span>
+        <span class="c1"># TODO: How to do recurrent dropout?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lstm_output_dropout</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">KEEP_PROB</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">hidden_to_tag</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">LSTM_HIDDEN</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ntags</span><span class="p">)</span>
 
@@ -1343,7 +1242,7 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 </pre></div>
 </code>
 <code class="pytorch">
-<div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">):</span>
 </pre></div>
 </code>
 <code class="dynet">
@@ -1371,7 +1270,7 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
 <div class="source"><pre><span></span>    <span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span> <span class="o">=</span> <span class="n">expressions</span>
 
 </pre></div></code>
-<code class="dynet empty">
+<code class="dynet">
 &nbsp;</code>
 </div>
 <div class="outer  tensorflow">
@@ -1381,9 +1280,9 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
             <span class="n">e_train</span><span class="p">,</span> <span class="n">e_mask</span><span class="p">,</span> <span class="n">e_learning_rate</span><span class="p">,</span> <span class="n">session</span> <span class="o">=</span> <span class="n">expressions</span>
 
 </pre></div></code>
-<code class="pytorch empty">
+<code class="pytorch">
 &nbsp;</code>
-<code class="dynet empty">
+<code class="dynet">
 &nbsp;</code>
 </div>
 <div class="outer  shared-content">
@@ -1669,7 +1568,6 @@ We pull out the output vector from the cell state at each step.<br /><br /></div
 <div class="source"><pre><span></span>        <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
             <span class="n">batch_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
             <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-            <span class="n">model</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
 </pre></div>
 </code>
 <code class="dynet empty">
@@ -1938,12 +1836,19 @@ function toggleShared() {
 <div class="header-outer">
 <div class="header">
 <p>
+A few miscellaneous notes:
+<ul>
+    <li>PyTorch does not support recurrent dropout directly. For an example of how to achieve it, see <a href="https://github.com/salesforce/awd-lstm-lm/blob/28683b20154fce8e5812aeb6403e35010348c3ea/weight_drop.py">the WeightDrop class</a> from the LSTM and QRNN Language Model Toolkit and <a href="https://github.com/salesforce/awd-lstm-lm/blob/457a422eb46e970a6aad659ca815a04b3d074d6c/model.py#L22">its use</a>.</li>
+    <li>Tensorflow 1.9 does not support weight decay directly, but <a href="https://github.com/tensorflow/tensorflow/pull/17438">this pull request</a> appears to add support and will be part of 1.10.</li>
+</ul>
+</p>
+<p>
 I developed this code with help from many people and resources. In particular:
 <ul>
-<li> <a href="https://github.com/jiesutd/NCRFpp">NCRFpp</a>, the code associated with <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a>, which was my starting point for PyTorch and my reference point when trying to check performance for the others.</li>
-<li> Members of the <a href="http://web.eecs.umich.edu/~wlasecki/croma.html">CROMA Lab</a> who gave feedback during development.</li>
-<li> Guillaume Genthial's blog post about <a href="https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html">Sequence Tagging with Tensorflow</a>. </li>
-<li> The DyNet <a href="https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py">example tagger</a>. </li>
+    <li> <a href="https://github.com/jiesutd/NCRFpp">NCRFpp</a>, the code associated with <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a>, which was my starting point for PyTorch and my reference point when trying to check performance for the others.</li>
+    <li> Members of the <a href="http://web.eecs.umich.edu/~wlasecki/croma.html">CROMA Lab</a> who gave feedback during development.</li>
+    <li> Guillaume Genthial's blog post about <a href="https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html">Sequence Tagging with Tensorflow</a>. </li>
+    <li> The DyNet <a href="https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py">example tagger</a>. </li>
 </ul>
 </p>
 </div>

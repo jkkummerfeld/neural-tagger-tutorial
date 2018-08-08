@@ -1,13 +1,18 @@
-This is a work in progress - I am implementing a simple part of speech tagger in multiple neural network frameworks as a way to learn them.
+# Neural Part-of-Speech tagger examples
 
-Example generation:
+This repository contains the code for DyNet, PyTorch and Tensorflow versions of a reasonably good POS tagger.
+It also contains a program to convert that code (and comments) into a website for easy reading and comparison.
+
+For the website, go [here](http://jkk.name/neural-tagger-tutorial/).
+
+To generate the site, run:
+
 ```
 ./visualise.py tagger.dy.py tagger.pt.py tagger.tf.py > docs/index.html
 ```
 
 Todo:
-- Add Disqus
-- Add saving and loading models
-- Work out recurrent dropout in pytorch
-- Work out weight decay in tensorflow
 - Check results still match / code has not been broken
+
+Ideas:
+- Maybe add additional comments as roll-over pop-ups (and some indication that they are there)

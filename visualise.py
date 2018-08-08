@@ -66,11 +66,11 @@ def print_comment_and_code(content, p0, p1, p2):
     print("""<code class="tensorflow">""")
     print(code2, end="")
     print("</code>")
-    empty_code1 = " empty" if len(comment) > 0 and code1 == "&nbsp;" and code2 != "&nbsp;" else ""
+    empty_code1 = " empty" if len(''.join(comment).strip()) > 0 and code1 == "&nbsp;" and code2 != "&nbsp;" else ""
     print("""<code class="pytorch{}">""".format(empty_code1))
     print(code1, end="")
     print("</code>")
-    empty_code0 = " empty" if len(comment) > 0 and code0 == "&nbsp;" else ""
+    empty_code0 = " empty" if len(''.join(comment).strip()) > 0 and code0 == "&nbsp;" else ""
     print("""<code class="dynet{}">""".format(empty_code0))
     print(code0, end="")
     print("</code>")
@@ -106,20 +106,30 @@ def read_file(filename):
         parts[-1].append((comment, code))
     return parts
 
-def match(part0, part1):
-    part0 = ' '.join([v[1].strip() for v in part0 if v[1] is not None])
-    part1 = ' '.join([v[1].strip() for v in part1 if v[1] is not None])
-    return part0 == part1
+def match(part0, part1, do_comments=False):
+    if do_comments:
+        part0 = ' '.join([v[0].strip() for v in part0 if v[0] is not None and v[1] is None])
+        part1 = ' '.join([v[0].strip() for v in part1 if v[0] is not None and v[1] is None])
+        return part0 == part1 and part0.strip() != ''
+    else:
+        part0 = ' '.join([v[1].strip() for v in part0 if v[1] is not None])
+        part1 = ' '.join([v[1].strip() for v in part1 if v[1] is not None])
+        return part0 == part1
 
 def align(content):
     # Find parts in common between all three
-    matches = []
+    matches = set()
     for i0, part0 in enumerate(content[0]):
         for i1, part1 in enumerate(content[1]):
             if match(part0, part1):
                 for i2, part2 in enumerate(content[2]):
                     if match(part0, part2):
-                        matches.append((i0, i1, i2))
+                        matches.add((i0, i1, i2))
+            if match(part0, part1, True):
+                for i2, part2 in enumerate(content[2]):
+                    if match(part0, part2, True):
+                        matches.add((i0, i1, i2))
+    matches = sorted(list(matches))
     return matches
 
 def main():
@@ -234,8 +244,10 @@ a {
     color: #00a1d6;
 }
 .button {
+    cursor: pointer;
     background-color: #008CBA;
     border: 10px;
+    margin: 5px;
     color: white;
     padding: 15px 32px;
     text-align: center;
@@ -343,9 +355,9 @@ Making this helped me understand all three frameworks better. Hopefully you find
 </p>
 
 <div class="buttons">
-<button class="button" id="dybutton" onclick="toggleDyNet()">Hide DyNet</button>
-<button class="button" id="ptbutton" onclick="togglePyTorch()">Hide PyTorch</button>
-<button class="button" id="tfbutton" onclick="toggleTensorflow()">Hide Tensorflow</button>
+<button class="button" id="dybutton" onmouseover="" onclick="toggleDyNet()">Hide DyNet</button>
+<button class="button" id="ptbutton" onmouseover="" onclick="togglePyTorch()">Hide PyTorch</button>
+<button class="button" id="tfbutton" onmouseover="" onclick="toggleTensorflow()">Hide Tensorflow</button>
 </div>
 </div>
 
@@ -429,12 +441,19 @@ function toggleShared() {
 <div class="header-outer">
 <div class="header">
 <p>
+A few miscellaneous notes:
+<ul>
+    <li>PyTorch 0.4 does not support recurrent dropout directly. For an example of how to achieve it, see the LSTM and QRNN Language Model Toolkit's <a href="https://github.com/salesforce/awd-lstm-lm/blob/28683b20154fce8e5812aeb6403e35010348c3ea/weight_drop.py">the WeightDrop class</a> and <a href="https://github.com/salesforce/awd-lstm-lm/blob/457a422eb46e970a6aad659ca815a04b3d074d6c/model.py#L22">how it is used</a>.</li>
+    <li>Tensorflow 1.9 does not support weight decay directly, but <a href="https://github.com/tensorflow/tensorflow/pull/17438">this pull request</a> appears to add support and will be part of 1.10.</li>
+</ul>
+</p>
+<p>
 I developed this code with help from many people and resources. In particular:
 <ul>
-<li> <a href="https://github.com/jiesutd/NCRFpp">NCRFpp</a>, the code associated with <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a>, which was my starting point for PyTorch and my reference point when trying to check performance for the others.</li>
-<li> Members of the <a href="http://web.eecs.umich.edu/~wlasecki/croma.html">CROMA Lab</a> who gave feedback during development.</li>
-<li> Guillaume Genthial's blog post about <a href="https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html">Sequence Tagging with Tensorflow</a>. </li>
-<li> The DyNet <a href="https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py">example tagger</a>. </li>
+    <li> <a href="https://github.com/jiesutd/NCRFpp">NCRFpp</a>, the code associated with <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a>, which was my starting point for PyTorch and my reference point when trying to check performance for the others.</li>
+    <li> Members of the <a href="http://web.eecs.umich.edu/~wlasecki/croma.html">CROMA Lab</a> who gave feedback during development.</li>
+    <li> Guillaume Genthial's blog post about <a href="https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html">Sequence Tagging with Tensorflow</a>. </li>
+    <li> The DyNet <a href="https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py">example tagger</a>. </li>
 </ul>
 </p>
 </div>

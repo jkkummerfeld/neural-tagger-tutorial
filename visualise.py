@@ -336,13 +336,14 @@ body .il { color: #BC94B7 } /* Literal.Number.Integer.Long */
 <div class=header>
 <p>
 DyNet, PyTorch and Tensorflow are complex frameworks with different ways of approaching neural network implementation and different default behaviour.
-This page is intended to show how to implement a non-trivial model in all three.
-The design of the page is motivated by my own preference for an annotated complete piece of code, rather than introducing parts piecemeal with discussion.
-For a non-tutorial version it would be better to use abstraction to improve flexibility, but that would have complicated the flow here.
+This page is intended to show how to implement the same non-trivial model in all three.
+The design of the page is motivated by my own preference for a complete program with annotations, rather than the more common tutorial style of introducing code piecemeal in between discussion.
+The design of the code is also geared towards providing a complete picture of how things fit together.
+For a non-tutorial version of this code it would be better to use abstraction to improve flexibility, but that would have complicated the flow here.
 </p>
 <p>
 Use the buttons to show one or more implementations and their associated comments.
-Shared content is repeated and aligned.
+Matching or closely related content is aligned.
 Implementation-specific content is shown with empty space for the other implementations and lines to make the link from a comment to the code clear.
 The <a href="https://github.com/jkkummerfeld/neural-tagger-tutorial">repository</a> for this page provides the code in runnable form.
 The only dependencies are the respective frameworks (DyNet <a href="https://github.com/clab/dynet/releases/tag/2.0.3">2.0.3</a>, PyTorch <a href="https://github.com/pytorch/pytorch/releases/tag/v0.4.1">0.4.1</a> and Tensorflow <a href="https://github.com/tensorflow/tensorflow/releases/tag/v1.9.0">1.9.0</a>).
@@ -444,7 +445,7 @@ function toggleShared() {
 <p>
 A few miscellaneous notes:
 <ul>
-    <li>PyTorch 0.4 does not support recurrent dropout directly. For an example of how to achieve it, see the LSTM and QRNN Language Model Toolkit's <a href="https://github.com/salesforce/awd-lstm-lm/blob/28683b20154fce8e5812aeb6403e35010348c3ea/weight_drop.py">the WeightDrop class</a> and <a href="https://github.com/salesforce/awd-lstm-lm/blob/457a422eb46e970a6aad659ca815a04b3d074d6c/model.py#L22">how it is used</a>.</li>
+    <li>PyTorch 0.4 does not support recurrent dropout directly. For an example of how to achieve it, see the LSTM and QRNN Language Model Toolkit's <a href="https://github.com/salesforce/awd-lstm-lm/blob/28683b20154fce8e5812aeb6403e35010348c3ea/weight_drop.py">WeightDrop class</a> and <a href="https://github.com/salesforce/awd-lstm-lm/blob/457a422eb46e970a6aad659ca815a04b3d074d6c/model.py#L22">how it is used</a>.</li>
     <li>Tensorflow 1.9 does not support weight decay directly, but <a href="https://github.com/tensorflow/tensorflow/pull/17438">this pull request</a> appears to add support and will be part of 1.10.</li>
 </ul>
 </p>

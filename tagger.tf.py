@@ -185,8 +185,8 @@ def main():
                 print("{} loss {} t-acc {} d-acc {}".format(epoch, loss, tacc, dacc))
 
             #### Save and load model. Both must be done after the definitions above (ie, the model should be recreated, then have its parameters set to match this saved version).
-            saver.save(sess, "tagger.tf.model")
-            saver.restore(sess, "tagger.tf.model")
+            saver.save(sess, "./tagger.tf.model")
+            saver.restore(sess, "./tagger.tf.model")
 
             #### Evaluation
             _, test_acc = do_pass(dev, token_to_id, tag_to_id, expressions,
@@ -262,7 +262,7 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
                 if gt == at:
                     match += 1
 
-    return loss, total / match
+    return loss, match / total
 
 if __name__ == '__main__':
     main()

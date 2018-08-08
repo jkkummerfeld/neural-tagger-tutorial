@@ -110,7 +110,7 @@ def main():
         #### Determine the current learning rate
         scheduler.step() # First call to decay_calc is with a 0, so this should be done here
 
-        #### Set in training mode, which does things like enable dropout components
+        #### Set in training mode, which does things like enable dropout components, and initialise the gradient to zero.
         model.train() 
         model.zero_grad()
         #### Training pass
@@ -220,10 +220,11 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train):
         batch_loss, output = model(input_array, output_array, lengths,
                 cur_batch_size)
 
-        #### In training we do the backwards pass and apply the update.
+        #### In training we do the backwards pass, apply the update, and reset the gradient.
         if train:
             batch_loss.backward()
             optimizer.step()
+            model.zero_grad()
             #### To get the loss value we use .item().
             loss += batch_loss.item()
         #### Our output is an array (rather than a single value), so we use a different approach to get it into a usable form.
@@ -237,7 +238,7 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train):
                 if gt == at:
                     match += 1
 
-    return loss, total / match
+    return loss, match / total
 
 if __name__ == '__main__':
     main()

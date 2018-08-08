@@ -223,7 +223,7 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
                     err = dy.pickneglogsoftmax(r_t, t)
                     loss_expressions.append(err)
                 #### Calculate the highest scoring tag (which will lead to evaluation of the graph)
-                chosen = np.argmax(out.npvalue())
+                chosen = np.argmax(r_t.npvalue())
                 pred_tags.append(chosen)
             predicted.append(pred_tags)
 
@@ -242,7 +242,7 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
                 if gt == at:
                     match += 1
 
-    return loss, total / match
+    return loss, match / total
 
 if __name__ == '__main__':
     main()

@@ -18,7 +18,7 @@ KEEP_PROB = 0.5 # KEEP_PROB - probability of keeping a value when applying dropo
 GLOVE = "../data/glove.6B.100d.txt" # GLOVE - location of glove vectors.
 WEIGHT_DECAY = 1e-8 # WEIGHT_DECAY - part of a rescaling of weights when an update occurs.  TODO apply as L2 regularization
 
-#### Tensorflow specfic imports
+#### Tensorflow specfic import
 import tensorflow as tf
 
 #### Reading the data
@@ -92,7 +92,7 @@ def main():
             random_vector = np.random.uniform(-scale, scale, [DIM_EMBEDDING])
             pretrained_list.append(random_vector)
 
-    # Construct computation graph
+    #### Construct computation graph
     with tf.Graph().as_default():
         e_input = tf.placeholder(tf.int32, [None, None], name='input')
         e_lengths = tf.placeholder(tf.int32, [None], name='lengths')

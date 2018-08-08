@@ -54,6 +54,11 @@ code  {
     width: 100ch;
     padding-left: 15px;
 }
+code.empty {
+    background: #666666;
+    margin-top: 7px;
+    max-height: 4px;
+}
 code.dynet {
 }
 code.pytorch {
@@ -144,7 +149,7 @@ body .il { color: #BC94B7 } /* Literal.Number.Integer.Long */
 </style>
 </head>
 
-<body onload="togglePyTorch(); toggleTensorflow()">
+<body onload="toggleDyNet(); togglePyTorch(); toggleTensorflow()">
 
 <h1>Implementing a neural Part-of-Speech tagger</h1>
 <div class=header>
@@ -173,7 +178,7 @@ Help from:
 
 
 <div class="main">
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">random</span>
@@ -198,9 +203,9 @@ Help from:
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 </pre></div></code>
-<div class="description">Imports<br /><br /></div>
+<div class="description shared-content">Imports<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span><span class="n">PAD</span> <span class="o">=</span> <span class="s2">&quot;__PAD__&quot;</span>
 <span class="n">UNK</span> <span class="o">=</span> <span class="s2">&quot;__UNK__&quot;</span>
@@ -243,7 +248,7 @@ Help from:
 <span class="n">WEIGHT_DECAY</span> <span class="o">=</span> <span class="mf">1e-8</span>
 
 </pre></div></code>
-<div class="description">Constants<br /><br /></div>
+<div class="description shared-content">Constants<br /><br /></div>
 </div>
 <div class="outer  dynet">
 <code class="tensorflow">
@@ -279,7 +284,7 @@ The first allows us to configure DyNet from within code rather than on the comma
 <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 </pre></div></code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">PyTorch specfic imports<br /><br /></div>
 </div>
@@ -288,13 +293,13 @@ The first allows us to configure DyNet from within code rather than on the comma
 <div class="source"><pre><span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="kn">as</span> <span class="nn">tf</span>
 
 </pre></div></code>
-<code class="pytorch">
+<code class="pytorch empty">
 &nbsp;</code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
-<div class="description tensorflow">Tensorflow specfic imports<br /><br /></div>
+<div class="description tensorflow">Tensorflow specfic import<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span><span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Example input:</span>
@@ -340,9 +345,9 @@ The first allows us to configure DyNet from within code rather than on the comma
     <span class="k">return</span> <span class="n">content</span>
 
 </pre></div></code>
-<div class="description">Reading the data<br /><br /></div>
+<div class="description shared-content">Reading the data<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span><span class="k">def</span> <span class="nf">simplify_token</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
     <span class="n">chars</span> <span class="o">=</span> <span class="p">[]</span>
@@ -382,9 +387,9 @@ The first allows us to configure DyNet from within code rather than on the comma
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
 </pre></div>
 </code>
-<div class="description">Replace all digits with 0 to decrease sparsity.<br /><br /></div>
+<div class="description shared-content">Replace all digits with 0 to decrease sparsity.<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;POS tagger.&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;training_data&#39;</span><span class="p">)</span>
@@ -406,9 +411,9 @@ The first allows us to configure DyNet from within code rather than on the comma
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
 </pre></div></code>
-<div class="description">Read arguments<br /><br /></div>
+<div class="description shared-content">Read arguments<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>    <span class="n">train</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">training_data</span><span class="p">)</span>
     <span class="n">dev</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">dev_data</span><span class="p">)</span>
@@ -424,9 +429,9 @@ The first allows us to configure DyNet from within code rather than on the comma
     <span class="n">dev</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">dev_data</span><span class="p">)</span>
 
 </pre></div></code>
-<div class="description">Read data (see function above)<br /><br /></div>
+<div class="description shared-content">Read data (see function above)<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>    <span class="n">id_to_token</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">,</span> <span class="n">UNK</span><span class="p">]</span>
     <span class="n">token_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">UNK</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
@@ -484,9 +489,9 @@ The first allows us to configure DyNet from within code rather than on the comma
     <span class="n">NTAGS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_to_id</span><span class="p">)</span>
 
 </pre></div></code>
-<div class="description">Make indices<br /><br /></div>
+<div class="description shared-content">Make indices<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>    <span class="n">pretrained</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">GLOVE</span><span class="p">):</span>
@@ -514,9 +519,9 @@ The first allows us to configure DyNet from within code rather than on the comma
         <span class="n">pretrained</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="n">vector</span>
 </pre></div>
 </code>
-<div class="description">Load pre-trained vectors<br /><br /></div>
+<div class="description shared-content">Load pre-trained vectors<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>    <span class="n">pretrained_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span> <span class="o">/</span> <span class="n">DIM_EMBEDDING</span><span class="p">)</span> 
@@ -544,9 +549,9 @@ The first allows us to configure DyNet from within code rather than on the comma
         <span class="k">else</span><span class="p">:</span>
 </pre></div>
 </code>
-<div class="description">We need the word vectors as a list to initialise the embeddings. Each entry in the list corresponds to the token with that index.<br /><br /></div>
+<div class="description shared-content">We need the word vectors as a list to initialise the embeddings. Each entry in the list corresponds to the token with that index.<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>            <span class="n">random_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="p">[</span><span class="n">DIM_EMBEDDING</span><span class="p">])</span>
             <span class="n">pretrained_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random_vector</span><span class="p">)</span>
@@ -562,7 +567,7 @@ The first allows us to configure DyNet from within code rather than on the comma
             <span class="n">pretrained_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random_vector</span><span class="p">)</span>
 
 </pre></div></code>
-<div class="description">For words that do not appear in GloVe we generate a random vector (note, the choice of scale here is important).<br /><br /></div>
+<div class="description shared-content">For words that do not appear in GloVe we generate a random vector (note, the choice of scale here is important).<br /><br /></div>
 </div>
 <div class="outer  dynet">
 <code class="tensorflow">
@@ -711,12 +716,11 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
                 <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">e_keep_prob</span><span class="p">,</span> <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">e_keep_prob</span><span class="p">)</span>
 </pre></div>
 </code>
-<code class="pytorch">
+<code class="pytorch empty">
 &nbsp;</code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
-<div class="description tensorflow">&nbsp;
-</div>
+<div class="description tensorflow">Construct computation graph<br /><br /></div>
 </div>
 <div class="outer  tensorflow">
 <code class="tensorflow">
@@ -735,9 +739,9 @@ DyNet clips gradients by default, which we disable here (this can have a big imp
                 <span class="n">reduction</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">Reduction</span><span class="o">.</span><span class="n">SUM</span><span class="p">)</span>
 </pre></div>
 </code>
-<code class="pytorch">
+<code class="pytorch empty">
 &nbsp;</code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description tensorflow">Recurrent dropout
 <br />
@@ -748,9 +752,9 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>        <span class="n">e_train</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">GradientDescentOptimizer</span><span class="p">(</span><span class="n">e_learning_rate</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">e_loss</span><span class="p">)</span>
 </pre></div>
 </code>
-<code class="pytorch">
+<code class="pytorch empty">
 &nbsp;</code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description tensorflow">One step option<br /><br /></div>
 </div>
@@ -759,9 +763,9 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>        <span class="n">e_auto_output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">e_predictions</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
 </pre></div></code>
-<code class="pytorch">
+<code class="pytorch empty">
 &nbsp;</code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description tensorflow">Multi-step, so that gradient clipping can be applied<br /><br /></div>
 </div>
@@ -807,7 +811,7 @@ Creating a stack of layers<br /><br /></div>
 <div class="description tensorflow">&nbsp;
 </div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>            <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EPOCHS</span><span class="p">):</span>
                 <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
@@ -823,7 +827,7 @@ Creating a stack of layers<br /><br /></div>
         <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
 
 </pre></div></code>
-<div class="description">Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.<br /><br /></div>
+<div class="description shared-content">Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.<br /><br /></div>
 </div>
 <div class="outer  dynet">
 <code class="tensorflow">
@@ -844,7 +848,7 @@ Creating a stack of layers<br /><br /></div>
         <span class="n">current_lr</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
 </pre></div></code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">Update learning rate. The current_lr is a dummy value to match the other frameworks<br /><br /></div>
 </div>
@@ -855,7 +859,7 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>        <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
 </pre></div>
 </code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">Set in training mode, which does things like enable dropout components<br /><br /></div>
 </div>
@@ -866,7 +870,7 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>        <span class="n">model</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
 </pre></div>
 </code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">Set all gradients to 0<br /><br /></div>
 </div>
@@ -875,13 +879,13 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>                <span class="n">current_lr</span> <span class="o">=</span> <span class="n">LEARNING_RATE</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
 
 </pre></div></code>
-<code class="pytorch">
+<code class="pytorch empty">
 &nbsp;</code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description tensorflow">Determine the current learning rate<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>                <span class="n">loss</span><span class="p">,</span> <span class="n">tacc</span> <span class="o">=</span> <span class="n">do_pass</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span>
                         <span class="n">expressions</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">current_lr</span><span class="p">)</span>
@@ -896,7 +900,7 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>        <span class="n">loss</span><span class="p">,</span> <span class="n">tacc</span> <span class="o">=</span> <span class="n">do_pass</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">current_lr</span><span class="p">)</span>
 </pre></div>
 </code>
-<div class="description">Training pass<br /><br /></div>
+<div class="description shared-content">Training pass<br /><br /></div>
 </div>
 <div class="outer  pytorch">
 <code class="tensorflow">
@@ -905,11 +909,11 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>        <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
 </pre></div>
 </code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">Set in evaluation mode, which does things like disable dropout components<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>                <span class="n">_</span><span class="p">,</span> <span class="n">dacc</span> <span class="o">=</span> <span class="n">do_pass</span><span class="p">(</span><span class="n">dev</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span>
                         <span class="bp">False</span><span class="p">)</span>
@@ -927,7 +931,7 @@ Creating a stack of layers<br /><br /></div>
         <span class="k">print</span><span class="p">(</span><span class="s2">&quot;{} loss {} t-acc {} d-acc {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">tacc</span><span class="p">,</span> <span class="n">dacc</span><span class="p">))</span>
 
 </pre></div></code>
-<div class="description">Dev pass<br /><br /></div>
+<div class="description shared-content">Dev pass<br /><br /></div>
 </div>
 <div class="outer  dynet">
 <code class="tensorflow">
@@ -958,7 +962,7 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>
 </pre></div>
 </code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">TODO: Save model<br /><br /></div>
 </div>
@@ -969,7 +973,7 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>
 </pre></div>
 </code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">TODO: Reload model<br /><br /></div>
 </div>
@@ -978,9 +982,9 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>
 
 </pre></div>            </code>
-<code class="pytorch">
+<code class="pytorch empty">
 &nbsp;</code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description tensorflow">Save model<br /><br /></div>
 </div>
@@ -989,13 +993,13 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>
 
 </pre></div>            </code>
-<code class="pytorch">
+<code class="pytorch empty">
 &nbsp;</code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description tensorflow">Reload model<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>            <span class="n">_</span><span class="p">,</span> <span class="n">test_acc</span> <span class="o">=</span> <span class="n">do_pass</span><span class="p">(</span><span class="n">dev</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span>
                     <span class="bp">False</span><span class="p">)</span>
@@ -1012,7 +1016,7 @@ Creating a stack of layers<br /><br /></div>
     <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Test Accuracy: {:.3f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">test_acc</span><span class="p">))</span>
 
 </pre></div></code>
-<div class="description">Evaluation<br /><br /></div>
+<div class="description shared-content">Evaluation<br /><br /></div>
 </div>
 <div class="outer  pytorch">
 <code class="tensorflow">
@@ -1031,7 +1035,7 @@ Creating a stack of layers<br /><br /></div>
                 <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">bidirectional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </pre></div>
 </code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">Neural network definition code<br /><br /></div>
 </div>
@@ -1179,7 +1183,7 @@ Creating a stack of layers<br /><br /></div>
 <div class="description pytorch">&nbsp;
 </div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
 </pre></div>
@@ -1192,7 +1196,7 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
 </pre></div>
 </code>
-<div class="description">Inference (the same function for train and test)<br /><br /></div>
+<div class="description shared-content">Inference (the same function for train and test)<br /><br /></div>
 </div>
 <div class="outer  dynet">
 <code class="tensorflow">
@@ -1213,7 +1217,7 @@ Creating a stack of layers<br /><br /></div>
 <div class="source"><pre><span></span>    <span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span> <span class="o">=</span> <span class="n">expressions</span>
 
 </pre></div></code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">Get expressions<br /><br /></div>
 </div>
@@ -1223,13 +1227,13 @@ Creating a stack of layers<br /><br /></div>
             <span class="n">e_train</span><span class="p">,</span> <span class="n">e_mask</span><span class="p">,</span> <span class="n">e_learning_rate</span><span class="p">,</span> <span class="n">session</span> <span class="o">=</span> <span class="n">expressions</span>
 
 </pre></div></code>
-<code class="pytorch">
+<code class="pytorch empty">
 &nbsp;</code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description tensorflow">Get expressions<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>    <span class="n">loss</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">match</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1254,9 +1258,9 @@ Creating a stack of layers<br /><br /></div>
     <span class="k">while</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 </pre></div>
 </code>
-<div class="description">Loop over batches, tracking the start of the batch in the data<br /><br /></div>
+<div class="description shared-content">Loop over batches, tracking the start of the batch in the data<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>        <span class="n">batch</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">start</span> <span class="p">:</span> <span class="n">start</span> <span class="o">+</span> <span class="n">BATCH_SIZE</span><span class="p">]</span>
         <span class="n">batch</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
@@ -1275,9 +1279,9 @@ Creating a stack of layers<br /><br /></div>
         <span class="n">start</span> <span class="o">+=</span> <span class="n">BATCH_SIZE</span>
 </pre></div>
 </code>
-<div class="description">Form the batch and order it based on length (not necessary for DyNet, but important for efficient processing in PyTorch).<br /><br /></div>
+<div class="description shared-content">Form the batch and order it based on length (not necessary for DyNet, but important for efficient processing in PyTorch).<br /><br /></div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>        <span class="k">if</span> <span class="n">start</span> <span class="o">%</span> <span class="mi">4000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">match</span> <span class="o">/</span> <span class="n">total</span><span class="p">)</span>
@@ -1296,7 +1300,7 @@ Creating a stack of layers<br /><br /></div>
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
 </pre></div></code>
-<div class="description">Log partial results so we can conveniently check progress<br /><br /></div>
+<div class="description shared-content">Log partial results so we can conveniently check progress<br /><br /></div>
 </div>
 <div class="outer  dynet">
 <code class="tensorflow">
@@ -1467,7 +1471,7 @@ We pull out the output vector from the cell state at each step.<br /><br /></div
 <span class="c1">##</span>
 </pre></div>
 </code>
-<code class="dynet">
+<code class="dynet empty">
 &nbsp;</code>
 <div class="description pytorch">PyTorch specific<br /><br /></div>
 </div>
@@ -1539,7 +1543,7 @@ We pull out the output vector from the cell state at each step.<br /><br /></div
 <div class="description tensorflow">&nbsp;
 </div>
 </div>
-<div class="outer ">
+<div class="outer  shared-content">
 <code class="tensorflow">
 <div class="source"><pre><span></span>        <span class="k">for</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">g</span><span class="p">),</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">predicted</span><span class="p">):</span>
             <span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
@@ -1582,7 +1586,7 @@ We pull out the output vector from the cell state at each step.<br /><br /></div
     <span class="n">main</span><span class="p">()</span>
 </pre></div>
 </code>
-<div class="description">Update the number of correct tags and total tags<br /><br /></div>
+<div class="description shared-content">Update the number of correct tags and total tags<br /><br /></div>
 </div>
 </div>
 
@@ -1603,6 +1607,7 @@ function toggleDyNet() {
             dybutton.style.backgroundColor = "#4CAF50";
         }
     }
+    toggleShared();
 }
 function togglePyTorch() {
     var pyitems = document.getElementsByClassName("pytorch");
@@ -1619,6 +1624,7 @@ function togglePyTorch() {
             ptbutton.style.backgroundColor = "#4CAF50";
         }
     }
+    toggleShared();
 }
 function toggleTensorflow() {
     var tfitems = document.getElementsByClassName("tensorflow");
@@ -1633,6 +1639,24 @@ function toggleTensorflow() {
             tfitems[i].style.display = "none";
             tfbutton.textContent = "Show Tensorflow";
             tfbutton.style.backgroundColor = "#4CAF50";
+        }
+    }
+    toggleShared();
+}
+function toggleShared() {
+    var dybutton = document.getElementById("dybutton");
+    var ptbutton = document.getElementById("ptbutton");
+    var tfbutton = document.getElementById("tfbutton");
+    var allitems = document.getElementsByClassName("shared-content");
+    if (dybutton.textContent === "Show DyNet" && tfbutton.textContent === "Show Tensorflow" && ptbutton.textContent === "Show PyTorch") {
+        for (var i = allitems.length - 1; i >= 0; i--)
+        {
+            allitems[i].style.display = "none";
+        }
+    } else {
+        for (var i = allitems.length - 1; i >= 0; i--)
+        {
+            allitems[i].style.display = "block";
         }
     }
 }

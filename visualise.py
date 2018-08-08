@@ -46,7 +46,7 @@ def print_comment_and_code(content, p0, p1, p2):
         code2 = '\n'.join([v[1] for v in part if v[1] is not None])
         code2 = highlight(code2)
 
-    class_name = ''
+    class_name = ' shared-content'
     if p0 is not None and p1 is None and p2 is None:
         class_name = ' dynet'
     elif p0 is None and p1 is not None and p2 is None:
@@ -59,10 +59,12 @@ def print_comment_and_code(content, p0, p1, p2):
     print("""<code class="tensorflow">""")
     print(code2, end="")
     print("</code>")
-    print("""<code class="pytorch">""")
+    empty_code1 = " empty" if len(comment) > 0 and code1 == "&nbsp;" and code2 != "&nbsp;" else ""
+    print("""<code class="pytorch{}">""".format(empty_code1))
     print(code1, end="")
     print("</code>")
-    print("""<code class="dynet">""")
+    empty_code0 = " empty" if len(comment) > 0 and code0 == "&nbsp;" else ""
+    print("""<code class="dynet{}">""".format(empty_code0))
     print(code0, end="")
     print("</code>")
 
@@ -207,6 +209,11 @@ code  {
     width: 100ch;
     padding-left: 15px;
 }
+code.empty {
+    background: #666666;
+    margin-top: 7px;
+    max-height: 4px;
+}
 code.dynet {
 }
 code.pytorch {
@@ -297,7 +304,7 @@ body .il { color: #BC94B7 } /* Literal.Number.Integer.Long */
 </style>
 </head>
 
-<body onload="togglePyTorch(); toggleTensorflow()">
+<body onload="toggleDyNet(); togglePyTorch(); toggleTensorflow()">
 
 <h1>Implementing a neural Part-of-Speech tagger</h1>
 <div class=header>
@@ -344,6 +351,7 @@ function toggleDyNet() {
             dybutton.style.backgroundColor = "#4CAF50";
         }
     }
+    toggleShared();
 }
 function togglePyTorch() {
     var pyitems = document.getElementsByClassName("pytorch");
@@ -360,6 +368,7 @@ function togglePyTorch() {
             ptbutton.style.backgroundColor = "#4CAF50";
         }
     }
+    toggleShared();
 }
 function toggleTensorflow() {
     var tfitems = document.getElementsByClassName("tensorflow");
@@ -374,6 +383,24 @@ function toggleTensorflow() {
             tfitems[i].style.display = "none";
             tfbutton.textContent = "Show Tensorflow";
             tfbutton.style.backgroundColor = "#4CAF50";
+        }
+    }
+    toggleShared();
+}
+function toggleShared() {
+    var dybutton = document.getElementById("dybutton");
+    var ptbutton = document.getElementById("ptbutton");
+    var tfbutton = document.getElementById("tfbutton");
+    var allitems = document.getElementsByClassName("shared-content");
+    if (dybutton.textContent === "Show DyNet" && tfbutton.textContent === "Show Tensorflow" && ptbutton.textContent === "Show PyTorch") {
+        for (var i = allitems.length - 1; i >= 0; i--)
+        {
+            allitems[i].style.display = "none";
+        }
+    } else {
+        for (var i = allitems.length - 1; i >= 0; i--)
+        {
+            allitems[i].style.display = "block";
         }
     }
 }

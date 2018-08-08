@@ -93,7 +93,8 @@ def main():
             random_vector = np.random.uniform(-scale, scale, [DIM_EMBEDDING])
             pretrained_list.append(random_vector)
 
-    # Construct the model
+    ####
+    # PyTorch model creation
     model = TaggerModel(NWORDS, NTAGS, pretrained_list, id_to_token)
     decay_calc = lambda epoch: 1 / (1 + LEARNING_DECAY_RATE * epoch)
     optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE,
@@ -132,59 +133,61 @@ def main():
     _, test_acc = do_pass(dev, token_to_id, tag_to_id, expressions, False)
     print("Test Accuracy: {:.3f}".format(test_acc))
 
-#### Neural network definition code
+#### Neural network definition code. In PyTorch networks are defined using classes that extend Module.
 class TaggerModel(torch.nn.Module):
+    #### In the constructor we define objects that will do each of the computations
     def __init__(self, nwords, ntags, pretrained_list, id_to_token):
         super().__init__()
 
+        #### Convert the word embeddings into a PyTorch tensor
         pretrained_tensor = torch.FloatTensor(pretrained_list)
+        #### TODO: , sparse=True) Doesn't work?
         self.word_embedding = torch.nn.Embedding.from_pretrained(
-                pretrained_tensor, freeze=False)# , sparse=True) Doesn't work?
+                pretrained_tensor, freeze=False)
         self.word_dropout = torch.nn.Dropout(1 - KEEP_PROB)
 
         self.lstm = torch.nn.LSTM(DIM_EMBEDDING, LSTM_HIDDEN, num_layers=1,
                 batch_first=True, bidirectional=True)
-        # TODO: How to do recurrent dropout?
+        #### TODO: How to do recurrent dropout?
         self.lstm_output_dropout = torch.nn.Dropout(1 - KEEP_PROB)
 
-        self.hidden_to_tag = torch.nn.Linear(LSTM_SIZES[-1] * 2, ntags)
+        self.hidden_to_tag = torch.nn.Linear(LSTM_HIDDEN * 2, ntags)
 
     def forward(self, sentences, labels, lengths, cur_batch_size):
         max_length = sentences.size(1)
 
-        # Look up word vectors
+        #### Look up word vectors
         word_vectors = self.word_embedding(sentences)
-        # Apply dropout
+        #### Apply dropout
         dropped_word_vectors = self.word_dropout(word_vectors)
 
-        # Assuming the data is ordered longest to shortest, this provides a view of the data that fits with how cuDNN works
-###        packed_words = torch.nn.utils.rnn.pack_sequence(dropped_word_vectors)
+        #### Assuming the data is ordered longest to shortest, this provides a view of the data that fits with how cuDNN works
         packed_words = torch.nn.utils.rnn.pack_padded_sequence(
                 dropped_word_vectors, lengths, True)
-        # Run the LSTM over the input
+        #### Run the LSTM over the input
         lstm_out, _ = self.lstm(packed_words, None)
-        # Reverse the view shift made for cuDNN
+        #### Reverse the view shift made for cuDNN. Specifying total_length is not necessary in general (it can be inferred), but is necessary for parallel processing.
         lstm_out, _ = torch.nn.utils.rnn.pad_packed_sequence(lstm_out,
-                batch_first=True, total_length=max_length) # Specifying total_length is not necessary in general (it can be inferred), but is important for parallel processing
-        # Apply dropout to the output
+                batch_first=True, total_length=max_length)
+        #### Apply dropout to the output
         lstm_out_dropped = self.lstm_output_dropout(lstm_out)
-        # Matrix multiply to get distribution over tags
+        #### Matrix multiply to get distribution over tags
         output_scores = self.hidden_to_tag(lstm_out_dropped)
 
-        # Reshape to [batch size * sequence length, ntags] for more efficient processing
+        #### Reshape to [batch size * sequence length, ntags] for more efficient processing
         output_scores = output_scores.view(cur_batch_size * max_length, -1)
         flat_labels = labels.view(cur_batch_size * max_length)
-        # Calculate the cross entropy loss, ignoring padding, and summing losses across the batch
+        #### Calculate the cross entropy loss, ignoring padding, and summing losses across the batch
         loss_function = torch.nn.CrossEntropyLoss(ignore_index=0, reduction='sum')
         loss = loss_function(output_scores, flat_labels)
-        # Identify the highest scoring tag in each case and reshape to be [batch, sequence]
+        #### Identify the highest scoring tag in each case and reshape to be [batch, sequence]
         _, predicted_tags  = torch.max(output_scores, 1)
         predicted_tags = predicted_tags.view(cur_batch_size, max_length)
         return loss, predicted_tags
 
 #### Inference (the same function for train and test)
 def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
-    #### Get expressions
+    ####
     model, optimizer = expressions
 
     #### Loop over batches, tracking the start of the batch in the data
@@ -202,30 +205,32 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
             print(loss, match / total)
             sys.stdout.flush()
 
-        #### PyTorch specific
+        #### Prepare input arrays, using .long() to cast the type from Tensor to LongTensor.
         cur_batch_size = len(batch)
         max_length = len(batch[0][0])
         lengths = [len(v[0]) for v in batch]
-        input_array = torch.zeros((cur_batch_size, max_length)).long() # .long() casts the type from Tensor to LongTensor
+        input_array = torch.zeros((cur_batch_size, max_length)).long()
         output_array = torch.zeros((cur_batch_size, max_length)).long()
         for n, (tokens, tags) in enumerate(batch):
-###            # This caused initalisation errors... unable to work out why
-###            tokens += [PAD] * (max_length - len(tokens))
-###            tags += [PAD] * (max_length - len(tags))
-            # Convert to indices
+            #### Using the indices we map our srings to numbers.
             token_ids = [token_to_id.get(simplify_token(t), 0) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
+            #### Fill the arrays, leaving the remaining values as zero (our padding value).
             input_array[n, :len(tokens)] = torch.LongTensor(token_ids)
             output_array[n, :len(tags)] = torch.LongTensor(tag_ids)
 
+        #### Calling the model as a function will run its forward() function, which constructs the network.
         batch_loss, output = model(input_array, output_array, lengths,
                 cur_batch_size)
 
+        #### In training we do the backwards pass and apply the update.
         if train:
             batch_loss.backward()
             optimizer.step()
             model.zero_grad()
+            #### To get the loss value we use .item().
             loss += batch_loss.item()
+        #### Our output is an array (rather than a single value), so we use a different approach to get it into a usable form.
         predicted = output.cpu().data.numpy()
 
         #### Update the number of correct tags and total tags

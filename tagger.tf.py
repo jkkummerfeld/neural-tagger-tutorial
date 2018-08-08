@@ -92,8 +92,9 @@ def main():
             random_vector = np.random.uniform(-scale, scale, [DIM_EMBEDDING])
             pretrained_list.append(random_vector)
 
-    #### Construct computation graph
+    # Tensorflow computation graph definition
     with tf.Graph().as_default():
+        #### Placeholders are inputs/values that will be fed into the network each time it is run. We define their type and the shape (constant, 1D vector, 2D vector, etc). This includes what we normally think of as inputs (e.g. the tokens) as well as parameters we want to change at run time (e.g. the learning rate).
         e_input = tf.placeholder(tf.int32, [None, None], name='input')
         e_lengths = tf.placeholder(tf.int32, [None], name='lengths')
         e_mask = tf.placeholder(tf.int32, [None, None], name='mask')
@@ -102,65 +103,69 @@ def main():
         e_keep_prob = tf.placeholder(tf.float32, name='keep_prob')
         e_learning_rate = tf.placeholder(tf.float32, name='learning_rate')
 
+        #### The embedding matrix is a variable (so they can shift in training), initialized with the vectors defined above.
         glove_init = tf.constant_initializer(np.array(pretrained_list))
         e_embedding = tf.get_variable("embedding", [NWORDS, DIM_EMBEDDING],
                 initializer=glove_init)
         e_embed = tf.nn.embedding_lookup(e_embedding, e_input)
 
-        e_raw_cell = tf.contrib.rnn.BasicLSTMCell(LSTM_HIDDEN)
-        e_cell = tf.contrib.rnn.DropoutWrapper(e_raw_cell,
+        #### We create an LSTM cell, then wrap it in a class that applies dropout.
+        e_cell_f = tf.contrib.rnn.BasicLSTMCell(LSTM_HIDDEN)
+        e_cell_f = tf.contrib.rnn.DropoutWrapper(e_cell_f,
                 input_keep_prob=e_keep_prob, output_keep_prob=e_keep_prob)
-        #### Recurrent dropout
+        #### Recurrent dropout options
         #        variational_recurrent=True, dtype=tf.float32,
         #        input_size=DIM_EMBEDDING)
-        #### Creating a stack of layers
-        # e_cell = tf.contrib.rnn.MultiRNNCell(e_dropped_lstm)
+        #### For a multi-layer network we would wrap a list of cells with MultiRNNCell
+        # e_cell_f = tf.contrib.rnn.MultiRNNCell([e_cell_f])
+        #### Make a cell for the reverse direction
+        e_cell_b = tf.contrib.rnn.BasicLSTMCell(LSTM_HIDDEN)
+        e_cell_b = tf.contrib.rnn.DropoutWrapper(e_cell_b,
+                input_keep_prob=e_keep_prob, output_keep_prob=e_keep_prob)
 
-        initial_state = e_cell.zero_state(BATCH_SIZE, dtype=tf.float32)
+        #### To use the cells we create a dynamic RNN. The 'dynamic' aspect means we can feed in the lengths of input sequences not counting padding and it will stop early.
+        e_initial_state_f = e_cell_f.zero_state(BATCH_SIZE, dtype=tf.float32)
+        e_initial_state_b = e_cell_f.zero_state(BATCH_SIZE, dtype=tf.float32)
         e_lstm_outputs, e_final_state = tf.nn.bidirectional_dynamic_rnn(
-                cell_fw=e_cell, cell_bw=e_cell, inputs=e_embed,
-                initial_state_fw=initial_state,
-                initial_state_bw=initial_state,
+                cell_fw=e_cell_f, cell_bw=e_cell_b, inputs=e_embed,
+                initial_state_fw=e_initial_state_f,
+                initial_state_bw=e_initial_state_b,
                 sequence_length=e_lengths, dtype=tf.float32)
         e_lstm_outputs_merged = tf.concat(e_lstm_outputs, 2)
 
+        #### Matrix multiply to get scores for each class
         e_predictions = tf.contrib.layers.fully_connected(e_lstm_outputs_merged,
                 NTAGS, activation_fn=None)
+        #### Cross-entropy loss. The reduction flag is crucial (the default is to average over the sequence). The weights flag accounts for padding that makes all of the sequences the same length.
         e_loss = tf.losses.sparse_softmax_cross_entropy(e_gold_output,
                 e_predictions, weights=e_mask,
                 reduction=tf.losses.Reduction.SUM)
-        #### One step option
+        #### Update computation - one step option
         e_train = tf.train.GradientDescentOptimizer(e_learning_rate).minimize(e_loss)
-        #### Multi-step, so that gradient clipping can be applied
+        #### Update computation - multi-step, so that (for example) gradient clipping can be applied
         # e_optimiser = tf.train.GradientDescentOptimizer(LEARNING_RATE)
         # e_gradients = e_optimiser.compute_gradients(e_loss)
         # e_clipped_gradients = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in e_gradients]
         # e_train = e_optimiser.apply_gradients(e_gradients)
 
+        #### Get the predicted label
         e_auto_output = tf.argmax(e_predictions, 2, output_type=tf.int32)
 
-        # Use computation graph
+        #### Use computation graph
         saver = tf.train.Saver()
+        #### Configure the system environment. By default tensorflow uses all available GPUs and RAM. These lines limit the number of GPUs used and the amount of RAM. To limit which GPUs are used, set the environment variable CUDA_VISIBLE_DEVICES (e.g. "export CUDA_VISIBLE_DEVICES=0,1").
         config = tf.ConfigProto(
-            # Set CUDA_VISIBLE_DEVICES to control which GPUs are visible
-            # Then adjust these:
             device_count = {'GPU': 0},
             gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction = 0.8)
         )
         with tf.Session(config=config) as sess:
+            #### Initialise all variables
             sess.run(tf.global_variables_initializer())
 
+            #### We are grouping these together for easy passing in to our function below. In practise you would want to have a class holding them.
             expressions = [
-                e_auto_output,
-                e_gold_output,
-                e_input,
-                e_keep_prob,
-                e_lengths,
-                e_loss,
-                e_train,
-                e_mask,
-                e_learning_rate,
-                sess
+                e_auto_output, e_gold_output, e_input, e_keep_prob, e_lengths,
+                e_loss, e_train, e_mask, e_learning_rate, sess
             ]
         
             #### Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.
@@ -191,7 +196,7 @@ def main():
 
 #### Inference (the same function for train and test)
 def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
-    #### Get expressions
+    ####
     e_auto_output, e_gold_output, e_input, e_keep_prob, e_lengths, e_loss, \
             e_train, e_mask, e_learning_rate, session = expressions
 
@@ -210,23 +215,26 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
             print(loss, match / total)
             sys.stdout.flush()
 
-        # Tensorflow specific
+        #### Add empty sentences to fill in batch
+        batch += [([], []) for _ in range(BATCH_SIZE - len(batch))]
+        #### Prepare input. We do this here for convenience and to have greater alignment between code above, but in practise it would be best to do this once in pre-processing.
         max_length = len(batch[0][0])
-        batch += [([], []) for _ in range(BATCH_SIZE - len(batch))] # Add empty sentences to fill in batch
         input_array = np.zeros([len(batch), max_length])
         output_array = np.zeros([len(batch), max_length])
         lengths = np.array([len(v[0]) for v in batch])
         mask = np.zeros([len(batch), max_length])
         for n, (tokens, tags) in enumerate(batch):
+            #### Using the indices we map our srings to numbers
             token_ids = [token_to_id.get(simplify_token(t), 0) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
+            #### Fill the arrays, leaving the remaining values as zero (our padding value).
             input_array[n, :len(tokens)] = token_ids
             output_array[n, :len(tags)] = tag_ids
             mask[n, :len(tokens)] = np.ones([len(tokens)])
-        cur_keep_prob = KEEP_PROB
-        if not train:
-            cur_keep_prob = 1.0
+        #### We can't change the computation graph to disable dropout when not training, so we just change the keep probability.
+        cur_keep_prob = KEEP_PROB if train else 1.0
 
+        #### This dictionary contains values for all of the placeholders we defined.
         feed = {
                 e_input: input_array,
                 e_gold_output: output_array,
@@ -235,11 +243,14 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
                 e_lengths: lengths,
                 e_learning_rate: lr
         }
+        #### Define the computations we want tensorflow to complete. If we are not training we do not need to compute a loss and we do not want to do the update.
         todo = [e_auto_output]
         if train:
             todo.append(e_loss)
             todo.append(e_train)
+        #### Running the network
         outcomes = session.run(todo, feed_dict=feed)
+        #### Getting our values out. Note, we do not request the e_train value because its work is done - it performed the update during its computation.
         predicted = outcomes[0]
         if train:
             loss += outcomes[1]

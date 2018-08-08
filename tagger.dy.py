@@ -102,6 +102,7 @@ def main():
             random_vector = np.random.uniform(-scale, scale, [DIM_EMBEDDING])
             pretrained_list.append(random_vector)
 
+    ####
     # DyNet model creation
     #### An object to hold the parameters/weights of the model.
     model = dy.ParameterCollection()
@@ -165,7 +166,7 @@ def main():
 
 #### Inference (the same function for train and test)
 def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
-    #### Get expressions
+    ####
     pEmbedding, pOutput, f_lstm, b_lstm, trainer = expressions
     trainer.learning_rate = lr
 

@@ -2,5 +2,12 @@ This is a work in progress - I am implementing a simple part of speech tagger in
 
 Example generation:
 ```
-./visualise.py < tagger.dy.py > example2.html 
+./visualise.py tagger.dy.py tagger.pt.py tagger.tf.py > docs/index.html
 ```
+
+Todo:
+- Add Disqus
+- Add saving and loading models
+- Work out recurrent dropout in pytorch
+- Work out weight decay in tensorflow
+- Check results still match / code has not been broken

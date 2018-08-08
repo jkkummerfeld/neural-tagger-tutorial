@@ -56,6 +56,13 @@ def print_comment_and_code(content, p0, p1, p2):
 
     print("""<div class="outer {}">""".format(class_name))
 
+    print("""<div class="description{}">""".format(class_name), end="")
+    if len(comment) > 0:
+        print("\n<br />\n".join(comment), end="<br /><br />")
+    else:
+        print("&nbsp;")
+    print("</div>")
+
     print("""<code class="tensorflow">""")
     print(code2, end="")
     print("</code>")
@@ -68,13 +75,6 @@ def print_comment_and_code(content, p0, p1, p2):
     print(code0, end="")
     print("</code>")
 
-    print("""<div class="description{}">""".format(class_name), end="")
-    if len(comment) > 0:
-        print("\n<br />\n".join(comment), end="<br /><br />")
-    else:
-        print("&nbsp;")
-    print("</div>")
-
     print("</div>")
 
 def read_file(filename):
@@ -84,7 +84,7 @@ def read_file(filename):
         line = line.strip('\n')
         
         # Update comment status
-        if line.strip().startswith("####") or line.strip().startswith("# "):
+        if line.strip().startswith("####"):
             if not prev_comment:
                 parts.append([])
             prev_comment = True
@@ -96,7 +96,7 @@ def read_file(filename):
         code = None
         if line.strip().startswith("####"):
             comment = line.strip()[4:].strip()
-        elif '#' in line:
+        elif '#' in line and line.strip()[0] != '#':
             comment = line.split("#")[-1]
             code = line[:-len(comment)-1]
             comment = comment.strip()
@@ -149,7 +149,7 @@ def main():
         positions[1] += 1
         positions[2] += 1
 
-    print("""</div>""")
+    print("""<br /></div>""")
 
     print(tail)
 
@@ -167,8 +167,8 @@ body {
     color: #FFFFFF;
 }
 h1 {
-    color: #36e6e8;
-    background: #222222;
+    color: #EEEEEE;
+    background: #111111;
     margin: 0px;
     text-align: center;
     padding: 10px;
@@ -184,12 +184,18 @@ div.main {
     align-items: center;     /* center items horizontally, in this case */
     padding-top: 10px;
 }
-div.header {
-    color: #36e6e8;
-    background: #222222;
+div.header-outer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #111111;
+    color: #EEEEEE;
     margin: 0px;
     padding: 10px;
     font-size: large;
+}
+div.header {
+    max-width: 800px;
 }
 div.outer {
     clear: both;
@@ -199,8 +205,8 @@ div.description {
     color: #36e6e8;
     text-align: justify;
     line-height: 112%;
-    overflow: hidden;
     width: 400px;
+    float: left;
 }
 code  {
     background: #000000;
@@ -211,14 +217,17 @@ code  {
 }
 code.empty {
     background: #666666;
-    margin-top: 7px;
-    max-height: 4px;
+    margin-top: 8px;
+    max-height: 3px;
 }
 code.dynet {
 }
 code.pytorch {
 }
 code.tensorflow {
+}
+a {
+    color: #9999cc;
 }
 .button {
     background-color: #008CBA;
@@ -307,26 +316,33 @@ body .il { color: #BC94B7 } /* Literal.Number.Integer.Long */
 <body onload="toggleDyNet(); togglePyTorch(); toggleTensorflow()">
 
 <h1>Implementing a neural Part-of-Speech tagger</h1>
+<div class="header-outer">
 <div class=header>
 <p>
-This is a bare-bones tagger than scores 97.2% on the standard Penn Treebank dataset.
-It is written to make it easy to understand how to implement a model in DyNet, PyTorch and Tensorflow, not for clean modularity or flexibility.
-The design of this page is motivated by my own preferences - I find interpreting code as an annotated continuous block is more intuitive than interspersing code and comments.
-Hopefully you find it informative too!
-<p>
+DyNet, PyTorch and Tensorflow are complex frameworks with different ways of approaching neural network implementation and different default behaviour.
+This page is intended to show how to implement a non-trivial model in all three.
+The design of the page is motivated by my own preference for an annotated complete piece of code, rather than introducing parts piecemeal with discussion.
+For a non-tutorial version it would be better to use abstraction to improve flexibility, but that would have complicated the flow here.
 </p>
-Help from:
-<ul>
-<li> https://github.com/jiesutd/NCRFpp </li>
-<li> https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html </li>
-<li> https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py </li>
-</ul>
+<p>
+Use the buttons to show one or more implementations and their associated comments.
+Shared content is repeated and aligned.
+Implementation-specific content is shown with empty space for the other implementations and lines to make the link from a comment to the code clear.
+If you would like to copy large chunks of the code, go to <a href="https://github.com/jkkummerfeld/neural-tagger-tutorial">the repository</a> for this page.
+</p>
+<p>
+The three implementations below all produce part-of-speech taggers that score ~97.2% on the development set of the Penn Treebank.
+The specific hyperparameter choice follows <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a> and matches their performance for the setting without a CRF or character-based word embeddings.
+</p>
+<p>
+Hopefully you find it informative too!
 </p>
 
 <div class="buttons">
 <button class="button" id="dybutton" onclick="toggleDyNet()">Hide DyNet</button>
 <button class="button" id="ptbutton" onclick="togglePyTorch()">Hide PyTorch</button>
 <button class="button" id="tfbutton" onclick="toggleTensorflow()">Hide Tensorflow</button>
+</div>
 </div>
 
 </div>
@@ -405,6 +421,17 @@ function toggleShared() {
     }
 }
 </script>
+
+<div class="header-outer">
+<p>
+I developed this code with help from many resources online. In particular:
+<ul>
+<li> <a href="https://github.com/jiesutd/NCRFpp">NCRFpp</a>, the code associated with <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a>, which was my starting point for PyTorch and my reference point when trying to check performance for the others.</li>
+<li> Guillaume Genthial blog post about <a href="https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html">Sequence Tagging with Tensorflow</a> </li>
+<li> The DyNet <a href="https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py">example tagger</a> </li>
+</ul>
+</p>
+</div>
 
 </body>
 </html>"""

@@ -288,7 +288,7 @@ body .sr { color: #BB6688 } /* Literal.String.Regex */
 body .s1 { color: #BC94B7 } /* Literal.String.Single */
 body .ss { color: #19177C } /* Literal.String.Symbol */
 body .bp { color: #36e6e8 } /* Name.Builtin.Pseudo */
-body .fm { color: #0000FF } /* Name.Function.Magic */
+body .fm { color: #36e6e8 } /* Name.Function.Magic */
 body .vc { color: #FFFFFF } /* Name.Variable.Class */
 body .vg { color: #FFFFFF } /* Name.Variable.Global */
 body .vi { color: #FFFFFF } /* Name.Variable.Instance */

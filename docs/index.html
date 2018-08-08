@@ -39,8 +39,12 @@ div.header-outer {
     padding: 10px;
     font-size: large;
 }
+div.disqus {
+    max-width: 1000px;
+    margin: auto;
+}
 div.header {
-    max-width: 800px;
+    max-width: 1000px;
 }
 div.outer {
     clear: both;
@@ -72,7 +76,7 @@ code.pytorch {
 code.tensorflow {
 }
 a {
-    color: #9999cc;
+    color: #00a1d6;
 }
 .button {
     background-color: #008CBA;
@@ -180,7 +184,7 @@ The three implementations below all produce part-of-speech taggers that score ~9
 The specific hyperparameter choice follows <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a> and matches their performance for the setting without a CRF or character-based word embeddings.
 </p>
 <p>
-Hopefully you find it informative too!
+Making this helped me understand all three frameworks better. Hopefully you find it informative too!
 </p>
 
 <div class="buttons">
@@ -1932,15 +1936,35 @@ function toggleShared() {
 </script>
 
 <div class="header-outer">
+<div class="header">
 <p>
-I developed this code with help from many resources online. In particular:
+I developed this code with help from many resources. In particular:
 <ul>
 <li> <a href="https://github.com/jiesutd/NCRFpp">NCRFpp</a>, the code associated with <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a>, which was my starting point for PyTorch and my reference point when trying to check performance for the others.</li>
-<li> Guillaume Genthial blog post about <a href="https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html">Sequence Tagging with Tensorflow</a> </li>
-<li> The DyNet <a href="https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py">example tagger</a> </li>
+<li> Guillaume Genthial's blog post about <a href="https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html">Sequence Tagging with Tensorflow</a>. </li>
+<li> The DyNet <a href="https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py">example tagger</a>. </li>
 </ul>
 </p>
 </div>
+</div>
+
+<div class="disqus">
+<div id="disqus_thread"></div>
+</div>
+<script>
+var disqus_config = function () {
+    this.page.url = 'http://jkk.name/neural-tagger-tutorial/';
+    this.page.identifier = '/neural-tagger-tutorial/';
+    this.page.title = 'Neural Tagger Example';
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://www-jkk-name.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 
 </body>
 </html>

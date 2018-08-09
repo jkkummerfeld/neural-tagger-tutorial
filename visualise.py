@@ -163,14 +163,7 @@ def main():
 
     print(tail)
 
-head = """
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
-   "http://www.w3.org/TR/html4/strict.dtd">
-
-<html>
-<head>
-  <title></title>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+style_dark = """
   <style type="text/css">
 body {
     background: #000000;
@@ -199,7 +192,9 @@ div.header-outer {
     flex-direction: column;
     align-items: center;
     background: #111111;
-    color: #EEEEEE;
+    letter-spacing: 1px;
+    line-height: 130%;
+    color: #e0e0e0;
     margin: 0px;
     padding: 10px;
     font-size: large;
@@ -215,9 +210,9 @@ div.outer {
     clear: both;
 }
 div.description {
+    letter-spacing: 1px;
     font-size: large;
-    color: #36e6e8;
-    text-align: justify;
+    color: #97cae0;
     line-height: 112%;
     width: 400px;
     float: left;
@@ -327,6 +322,160 @@ body .vi { color: #FFFFFF } /* Name.Variable.Instance */
 body .vm { color: #FFFFFF } /* Name.Variable.Magic */
 body .il { color: #BC94B7 } /* Literal.Number.Integer.Long */
 </style>
+"""
+
+style_light = """
+  <style type="text/css">
+body {
+}
+h1 {
+    background: #f3f3f3;
+    margin: 0px;
+    text-align: center;
+    padding: 10px;
+}
+div.buttons {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+div.main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;     /* center items horizontally, in this case */
+    padding-top: 10px;
+}
+div.header-outer {
+    background: #f3f3f3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 130%;
+    margin: 0px;
+    padding: 10px;
+    font-size: large;
+}
+div.disqus {
+    max-width: 1000px;
+    margin: auto;
+}
+div.header {
+    max-width: 1000px;
+}
+div.outer {
+    clear: both;
+}
+div.description {
+    font-size: large;
+    line-height: 112%;
+    width: 400px;
+    float: left;
+}
+code  {
+    float: right;
+    width: 100ch;
+    padding-left: 15px;
+}
+code.empty {
+    background: #DDDDDD;
+    margin-top: 8px;
+    max-height: 3px;
+}
+code.dynet {
+}
+code.pytorch {
+}
+code.tensorflow {
+}
+a {
+}
+.button {
+    cursor: pointer;
+    background-color: #008CBA;
+    border: 10px;
+    margin: 5px;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+pre { line-height: 125%; font-family: Menlo, "Courier New", Courier, monospace; margin: 0 }
+body .hll { background-color: #ffffcc }
+body  { background: #ffffff; }
+body .c { color: #888888; font-style: italic } /* Comment */
+body .err { color: #FF0000 } /* Error */
+body .k { color: #0000ff } /* Keyword */
+body .n { color: #000000 } /* Name */
+body .ch { color: #888888; font-style: italic } /* Comment.Hashbang */
+body .cm { color: #888888; font-style: italic } /* Comment.Multiline */
+body .cp { color: #888888; font-style: italic } /* Comment.Preproc */
+body .cpf { color: #888888; font-style: italic } /* Comment.PreprocFile */
+body .c1 { color: #888888; font-style: italic } /* Comment.Single */
+body .cs { color: #888888; font-style: italic } /* Comment.Special */
+body .kc { color: #0000ff } /* Keyword.Constant */
+body .kd { color: #0000ff } /* Keyword.Declaration */
+body .kn { color: #0000ff } /* Keyword.Namespace */
+body .kp { color: #0000ff } /* Keyword.Pseudo */
+body .kr { color: #0000ff } /* Keyword.Reserved */
+body .kt { color: #0000ff } /* Keyword.Type */
+body .m { color: #33aaff } /* Literal.Number */
+body .s { color: #55aa22 } /* Literal.String */
+body .na { color: #000000 } /* Name.Attribute */
+body .nb { color: #000000 } /* Name.Builtin */
+body .nc { color: #000000 } /* Name.Class */
+body .no { color: #000000 } /* Name.Constant */
+body .nd { color: #000000 } /* Name.Decorator */
+body .ni { color: #000000 } /* Name.Entity */
+body .ne { color: #000000 } /* Name.Exception */
+body .nf { color: #000000 } /* Name.Function */
+body .nl { color: #000000 } /* Name.Label */
+body .nn { color: #000000 } /* Name.Namespace */
+body .nx { color: #000000 } /* Name.Other */
+body .py { color: #000000 } /* Name.Property */
+body .nt { color: #000000 } /* Name.Tag */
+body .nv { color: #000000 } /* Name.Variable */
+body .ow { color: #0000ff } /* Operator.Word */
+body .mb { color: #33aaff } /* Literal.Number.Bin */
+body .mf { color: #33aaff } /* Literal.Number.Float */
+body .mh { color: #33aaff } /* Literal.Number.Hex */
+body .mi { color: #33aaff } /* Literal.Number.Integer */
+body .mo { color: #33aaff } /* Literal.Number.Oct */
+body .sa { color: #55aa22 } /* Literal.String.Affix */
+body .sb { color: #55aa22 } /* Literal.String.Backtick */
+body .sc { color: #55aa22 } /* Literal.String.Char */
+body .dl { color: #55aa22 } /* Literal.String.Delimiter */
+body .sd { color: #55aa22 } /* Literal.String.Doc */
+body .s2 { color: #55aa22 } /* Literal.String.Double */
+body .se { color: #55aa22 } /* Literal.String.Escape */
+body .sh { color: #55aa22 } /* Literal.String.Heredoc */
+body .si { color: #55aa22 } /* Literal.String.Interpol */
+body .sx { color: #55aa22 } /* Literal.String.Other */
+body .sr { color: #55aa22 } /* Literal.String.Regex */
+body .s1 { color: #55aa22 } /* Literal.String.Single */
+body .ss { color: #55aa22 } /* Literal.String.Symbol */
+body .bp { color: #000000 } /* Name.Builtin.Pseudo */
+body .fm { color: #000000 } /* Name.Function.Magic */
+body .vc { color: #000000 } /* Name.Variable.Class */
+body .vg { color: #000000 } /* Name.Variable.Global */
+body .vi { color: #000000 } /* Name.Variable.Instance */
+body .vm { color: #000000 } /* Name.Variable.Magic */
+body .il { color: #33aaff } /* Literal.Number.Integer.Long */
+</style>
+"""
+
+head = """
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+  <title></title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+"""+ style_light +"""
 </head>
 
 <body onload="toggleDyNet(); togglePyTorch(); toggleTensorflow()">

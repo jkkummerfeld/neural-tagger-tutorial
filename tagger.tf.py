@@ -1,4 +1,5 @@
 #### Imports
+#### We use argparse for processing command line arguments, random for shuffling our data, sys for flushing output, and numpy for handling vectors of data.
 import argparse
 import random
 import sys
@@ -22,7 +23,8 @@ GLOVE = "../data/glove.6B.100d.txt" # GLOVE - location of glove vectors.
 #### Tensorflow specfic import
 import tensorflow as tf
 
-#### Reading the data
+#### Data reading
+#### We are expecting a minor variation on the raw Penn Treebank data, with one line per sentence, tokens separated by spaces, and the tag for each token placed next to its word (the | works as a separator as it does not appear as a token).
 def read_data(filename):
     """Example input:
     Pierre|NNP Vinken|NNP ,|, 61|CD years|NNS old|JJ
@@ -36,7 +38,7 @@ def read_data(filename):
             content.append((tokens, tags))
     return content
 
-#### Replace all digits with 0 to decrease sparsity.
+#### Simplificaiton by replacing all digits with 0 to decrease sparsity.
 def simplify_token(token):
     chars = []
     for char in token:
@@ -48,16 +50,17 @@ def simplify_token(token):
 
 def main():
     #### Read arguments
+    #### For the purpose of this example we only have arguments for locations of the data.
     parser = argparse.ArgumentParser(description='POS tagger.')
     parser.add_argument('training_data')
     parser.add_argument('dev_data')
     args = parser.parse_args()
 
-    #### Read data (see function above)
     train = read_data(args.training_data)
     dev = read_data(args.dev_data)
 
     #### Make indices
+    #### These are mappings from strings to integers that will be used to get the input for our model and to process the output. UNK is added to our mapping so that there is a vector we can use when we encounter unknown words. The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kept for consistency.
     id_to_token = [PAD, UNK]
     token_to_id = {PAD: 0, UNK: 1}
     id_to_tag = [PAD]
@@ -77,6 +80,7 @@ def main():
     NTAGS = len(tag_to_id)
 
     #### Load pre-trained vectors
+    #### I am assuming these are the 100-dimensional GloVe embeddings in their standard format.
     pretrained = {}
     for line in open(GLOVE):
         parts = line.strip().split()

@@ -27,7 +27,7 @@ dynet_config.set(mem=256, autobatch=0, weight_decay=WEIGHT_DECAY,random_seed=0)
 # dynet_config.set_gpu() 
 import dynet as dy 
 
-#### Reading the data
+#### Data reading
 #### We are expecting a minor variation on the raw Penn Treebank data, with one line per sentence, tokens separated by spaces, and the tag for each token placed next to its word (the | works as a separator as it does not appear as a token).
 def read_data(filename):
     """Example input:
@@ -42,7 +42,7 @@ def read_data(filename):
             content.append((tokens, tags))
     return content
 
-#### Replace all digits with 0 to decrease sparsity.
+#### Simplificaiton by replacing all digits with 0 to decrease sparsity.
 def simplify_token(token):
     chars = []
     for char in token:
@@ -60,7 +60,6 @@ def main():
     parser.add_argument('dev_data')
     args = parser.parse_args()
 
-    #### Read data (see function above)
     train = read_data(args.training_data)
     dev = read_data(args.dev_data)
 

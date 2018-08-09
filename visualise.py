@@ -23,6 +23,8 @@ def highlight(raw_code):
             parts = code.split("<span class")
             parts[0] += ' '*indent
             code = "<span class".join(parts)
+    if code.startswith("""<div class="source">""") and code.endswith("</div>"):
+        code = code[20:-6]
     return code
 
 def print_comment_and_code(content, p0, p1, p2):
@@ -56,23 +58,23 @@ def print_comment_and_code(content, p0, p1, p2):
 
     print("""<div class="outer {}">""".format(class_name))
 
-    print("""<div class="description{}">""".format(class_name), end="")
+    print("""<span class="description{}">""".format(class_name), end="")
     if len(comment) > 0:
         print("\n<br />\n".join(comment), end="<br /><br />")
     else:
         print("&nbsp;")
-    print("</div>")
+    print("</span>")
 
-    print("""<code class="tensorflow">""")
-    print(code2, end="")
+    empty_code0 = " empty" if len(''.join(comment).strip()) > 0 and code0 == "&nbsp;" else ""
+    print("""<code class="dynet{}">""".format(empty_code0))
+    print(code0, end="")
     print("</code>")
     empty_code1 = " empty" if len(''.join(comment).strip()) > 0 and code1 == "&nbsp;" and code2 != "&nbsp;" else ""
     print("""<code class="pytorch{}">""".format(empty_code1))
     print(code1, end="")
     print("</code>")
-    empty_code0 = " empty" if len(''.join(comment).strip()) > 0 and code0 == "&nbsp;" else ""
-    print("""<code class="dynet{}">""".format(empty_code0))
-    print(code0, end="")
+    print("""<code class="tensorflow">""")
+    print(code2, end="")
     print("</code>")
 
     print("</div>")
@@ -163,166 +165,166 @@ def main():
 
     print(tail)
 
-style_dark = """
-  <style type="text/css">
-body {
-    background: #000000;
-    color: #FFFFFF;
-}
-h1 {
-    color: #EEEEEE;
-    background: #111111;
-    margin: 0px;
-    text-align: center;
-    padding: 10px;
-}
-div.buttons {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-div.main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;     /* center items horizontally, in this case */
-    padding-top: 10px;
-}
-div.header-outer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: #111111;
-    letter-spacing: 1px;
-    line-height: 130%;
-    color: #e0e0e0;
-    margin: 0px;
-    padding: 10px;
-    font-size: large;
-}
-div.disqus {
-    max-width: 1000px;
-    margin: auto;
-}
-div.header {
-    max-width: 1000px;
-}
-div.outer {
-    clear: both;
-}
-div.description {
-    letter-spacing: 1px;
-    font-size: large;
-    color: #97cae0;
-    line-height: 112%;
-    width: 400px;
-    float: left;
-}
-code  {
-    background: #000000;
-    color: #FFFFFF;
-    float: right;
-    width: 100ch;
-    padding-left: 15px;
-}
-code.empty {
-    background: #666666;
-    margin-top: 8px;
-    max-height: 3px;
-}
-code.dynet {
-}
-code.pytorch {
-}
-code.tensorflow {
-}
-a {
-    color: #00a1d6;
-}
-.button {
-    cursor: pointer;
-    background-color: #008CBA;
-    border: 10px;
-    margin: 5px;
-    color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-}
-td.linenos { background-color: #f0f0f0; padding-right: 10px; }
-span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
-pre { line-height: 125%; font-family: Menlo, "Courier New", Courier, monospace; margin: 0 }
-body .hll { background-color: #ffffcc }
-body .c { color: #408080; } /* Comment */
-body .err { border: 1px solid #FF0000 } /* Error */
-body .k { color: #fceb60; } /* Keyword */
-body .o { color: #FFFFFF } /* Operator */
-body .ch { color: #36e6e8; } /* Comment.Hashbang */
-body .cm { color: #36e6e8; } /* Comment.Multiline */
-body .cp { color: #36e6e8 } /* Comment.Preproc */
-body .cpf { color: #36e6e8; } /* Comment.PreprocFile */
-body .c1 { color: #36e6e8; } /* Comment.Single */
-body .cs { color: #36e6e8; } /* Comment.Special */
-body .gd { color: #A00000 } /* Generic.Deleted */
-body .ge { font-style: italic } /* Generic.Emph */
-body .gr { color: #FF0000 } /* Generic.Error */
-body .gh { color: #000080; } /* Generic.Heading */
-body .gi { color: #00A000 } /* Generic.Inserted */
-body .go { color: #888888 } /* Generic.Output */
-body .gp { color: #000080; } /* Generic.Prompt */
-body .gs { font-weight: bold } /* Generic.Strong */
-body .gu { color: #800080; } /* Generic.Subheading */
-body .gt { color: #0044DD } /* Generic.Traceback */
-body .kc { color: #008000; } /* Keyword.Constant */
-body .kd { color: #008000; } /* Keyword.Declaration */
-body .kn { color: #84b0d9; } /* Keyword.Namespace */
-body .kp { color: #008000 } /* Keyword.Pseudo */
-body .kr { color: #008000; } /* Keyword.Reserved */
-body .kt { color: #B00040 } /* Keyword.Type */
-body .m { color: #BC94B7 } /* Literal.Number */
-body .s { color: #BC94B7 } /* Literal.String */
-body .na { color: #7D9029 } /* Name.Attribute */
-body .nb { color: #36e6e8 } /* Name.Builtin */
-body .nc { color: #36e6e8; } /* Name.Class */
-body .no { color: #880000 } /* Name.Constant */
-body .nd { color: #AA22FF } /* Name.Decorator */
-body .ni { color: #999999; } /* Name.Entity */
-body .ne { color: #D2413A; } /* Name.Exception */
-body .nf { color: #36e6e8 } /* Name.Function */
-body .nl { color: #A0A000 } /* Name.Label */
-body .nn { color: #FFFFFF; } /* Name.Namespace */
-body .nt { color: #008000; } /* Name.Tag */
-body .nv { color: #19177C } /* Name.Variable */
-body .ow { color: #fceb60; } /* Operator.Word */
-body .w { color: #bbbbbb } /* Text.Whitespace */
-body .mb { color: #BC94B7 } /* Literal.Number.Bin */
-body .mf { color: #BC94B7 } /* Literal.Number.Float */
-body .mh { color: #BC94B7 } /* Literal.Number.Hex */
-body .mi { color: #BC94B7 } /* Literal.Number.Integer */
-body .mo { color: #BC94B7 } /* Literal.Number.Oct */
-body .sa { color: #BC94B7 } /* Literal.String.Affix */
-body .sb { color: #BC94B7 } /* Literal.String.Backtick */
-body .sc { color: #BC94B7 } /* Literal.String.Char */
-body .dl { color: #BC94B7 } /* Literal.String.Delimiter */
-body .sd { color: #BC94B7; } /* Literal.String.Doc */
-body .s2 { color: #BC94B7 } /* Literal.String.Double */
-body .se { color: #BB6622; } /* Literal.String.Escape */
-body .sh { color: #BC94B7 } /* Literal.String.Heredoc */
-body .si { color: #BB6688; } /* Literal.String.Interpol */
-body .sx { color: #008000 } /* Literal.String.Other */
-body .sr { color: #BB6688 } /* Literal.String.Regex */
-body .s1 { color: #BC94B7 } /* Literal.String.Single */
-body .ss { color: #19177C } /* Literal.String.Symbol */
-body .bp { color: #36e6e8 } /* Name.Builtin.Pseudo */
-body .fm { color: #36e6e8 } /* Name.Function.Magic */
-body .vc { color: #FFFFFF } /* Name.Variable.Class */
-body .vg { color: #FFFFFF } /* Name.Variable.Global */
-body .vi { color: #FFFFFF } /* Name.Variable.Instance */
-body .vm { color: #FFFFFF } /* Name.Variable.Magic */
-body .il { color: #BC94B7 } /* Literal.Number.Integer.Long */
-</style>
-"""
+###style_dark = """
+###  <style type="text/css">
+###body {
+###    background: #000000;
+###    color: #FFFFFF;
+###}
+###h1 {
+###    color: #EEEEEE;
+###    background: #111111;
+###    margin: 0px;
+###    text-align: center;
+###    padding: 10px;
+###}
+###div.buttons {
+###    width: 100%;
+###    display: flex;
+###    justify-content: center;
+###}
+###div.main {
+###    display: flex;
+###    flex-direction: column;
+###    align-items: center;     /* center items horizontally, in this case */
+###    padding-top: 10px;
+###}
+###div.header-outer {
+###    display: flex;
+###    flex-direction: column;
+###    align-items: center;
+###    background: #111111;
+###    letter-spacing: 1px;
+###    line-height: 130%;
+###    color: #e0e0e0;
+###    margin: 0px;
+###    padding: 10px;
+###    font-size: large;
+###}
+###div.disqus {
+###    max-width: 1000px;
+###    margin: auto;
+###}
+###div.header {
+###    max-width: 1000px;
+###}
+###div.outer {
+###    clear: both;
+###}
+###div.description {
+###    letter-spacing: 1px;
+###    font-size: large;
+###    color: #97cae0;
+###    line-height: 112%;
+###    width: 400px;
+###    float: left;
+###}
+###code  {
+###    background: #000000;
+###    color: #FFFFFF;
+###    float: right;
+###    width: 100ch;
+###    padding-left: 15px;
+###}
+###code.empty {
+###    background: #666666;
+###    margin-top: 8px;
+###    max-height: 3px;
+###}
+###code.dynet {
+###}
+###code.pytorch {
+###}
+###code.tensorflow {
+###}
+###a {
+###    color: #00a1d6;
+###}
+###.button {
+###    cursor: pointer;
+###    background-color: #008CBA;
+###    border: 10px;
+###    margin: 5px;
+###    color: white;
+###    padding: 15px 32px;
+###    text-align: center;
+###    text-decoration: none;
+###    display: inline-block;
+###    font-size: 16px;
+###}
+###td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+###span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+###pre { line-height: 125%; font-family: Menlo, "Courier New", Courier, monospace; margin: 0 }
+###body .hll { background-color: #ffffcc }
+###body .c { color: #408080; } /* Comment */
+###body .err { border: 1px solid #FF0000 } /* Error */
+###body .k { color: #fceb60; } /* Keyword */
+###body .o { color: #FFFFFF } /* Operator */
+###body .ch { color: #36e6e8; } /* Comment.Hashbang */
+###body .cm { color: #36e6e8; } /* Comment.Multiline */
+###body .cp { color: #36e6e8 } /* Comment.Preproc */
+###body .cpf { color: #36e6e8; } /* Comment.PreprocFile */
+###body .c1 { color: #36e6e8; } /* Comment.Single */
+###body .cs { color: #36e6e8; } /* Comment.Special */
+###body .gd { color: #A00000 } /* Generic.Deleted */
+###body .ge { font-style: italic } /* Generic.Emph */
+###body .gr { color: #FF0000 } /* Generic.Error */
+###body .gh { color: #000080; } /* Generic.Heading */
+###body .gi { color: #00A000 } /* Generic.Inserted */
+###body .go { color: #888888 } /* Generic.Output */
+###body .gp { color: #000080; } /* Generic.Prompt */
+###body .gs { font-weight: bold } /* Generic.Strong */
+###body .gu { color: #800080; } /* Generic.Subheading */
+###body .gt { color: #0044DD } /* Generic.Traceback */
+###body .kc { color: #008000; } /* Keyword.Constant */
+###body .kd { color: #008000; } /* Keyword.Declaration */
+###body .kn { color: #84b0d9; } /* Keyword.Namespace */
+###body .kp { color: #008000 } /* Keyword.Pseudo */
+###body .kr { color: #008000; } /* Keyword.Reserved */
+###body .kt { color: #B00040 } /* Keyword.Type */
+###body .m { color: #BC94B7 } /* Literal.Number */
+###body .s { color: #BC94B7 } /* Literal.String */
+###body .na { color: #7D9029 } /* Name.Attribute */
+###body .nb { color: #36e6e8 } /* Name.Builtin */
+###body .nc { color: #36e6e8; } /* Name.Class */
+###body .no { color: #880000 } /* Name.Constant */
+###body .nd { color: #AA22FF } /* Name.Decorator */
+###body .ni { color: #999999; } /* Name.Entity */
+###body .ne { color: #D2413A; } /* Name.Exception */
+###body .nf { color: #36e6e8 } /* Name.Function */
+###body .nl { color: #A0A000 } /* Name.Label */
+###body .nn { color: #FFFFFF; } /* Name.Namespace */
+###body .nt { color: #008000; } /* Name.Tag */
+###body .nv { color: #19177C } /* Name.Variable */
+###body .ow { color: #fceb60; } /* Operator.Word */
+###body .w { color: #bbbbbb } /* Text.Whitespace */
+###body .mb { color: #BC94B7 } /* Literal.Number.Bin */
+###body .mf { color: #BC94B7 } /* Literal.Number.Float */
+###body .mh { color: #BC94B7 } /* Literal.Number.Hex */
+###body .mi { color: #BC94B7 } /* Literal.Number.Integer */
+###body .mo { color: #BC94B7 } /* Literal.Number.Oct */
+###body .sa { color: #BC94B7 } /* Literal.String.Affix */
+###body .sb { color: #BC94B7 } /* Literal.String.Backtick */
+###body .sc { color: #BC94B7 } /* Literal.String.Char */
+###body .dl { color: #BC94B7 } /* Literal.String.Delimiter */
+###body .sd { color: #BC94B7; } /* Literal.String.Doc */
+###body .s2 { color: #BC94B7 } /* Literal.String.Double */
+###body .se { color: #BB6622; } /* Literal.String.Escape */
+###body .sh { color: #BC94B7 } /* Literal.String.Heredoc */
+###body .si { color: #BB6688; } /* Literal.String.Interpol */
+###body .sx { color: #008000 } /* Literal.String.Other */
+###body .sr { color: #BB6688 } /* Literal.String.Regex */
+###body .s1 { color: #BC94B7 } /* Literal.String.Single */
+###body .ss { color: #19177C } /* Literal.String.Symbol */
+###body .bp { color: #36e6e8 } /* Name.Builtin.Pseudo */
+###body .fm { color: #36e6e8 } /* Name.Function.Magic */
+###body .vc { color: #FFFFFF } /* Name.Variable.Class */
+###body .vg { color: #FFFFFF } /* Name.Variable.Global */
+###body .vi { color: #FFFFFF } /* Name.Variable.Instance */
+###body .vm { color: #FFFFFF } /* Name.Variable.Magic */
+###body .il { color: #BC94B7 } /* Literal.Number.Integer.Long */
+###</style>
+###"""
 
 style_light = """
   <style type="text/css">
@@ -339,12 +341,6 @@ div.buttons {
     display: flex;
     justify-content: center;
 }
-div.main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;     /* center items horizontally, in this case */
-    padding-top: 10px;
-}
 div.header-outer {
     background: #f3f3f3;
     display: flex;
@@ -355,39 +351,8 @@ div.header-outer {
     padding: 10px;
     font-size: large;
 }
-div.disqus {
-    max-width: 1000px;
-    margin: auto;
-}
 div.header {
     max-width: 1000px;
-}
-div.outer {
-    clear: both;
-}
-div.description {
-    font-size: large;
-    line-height: 112%;
-    width: 400px;
-    float: left;
-}
-code  {
-    float: right;
-    width: 100ch;
-    padding-left: 15px;
-}
-code.empty {
-    background: #DDDDDD;
-    margin-top: 8px;
-    max-height: 3px;
-}
-code.dynet {
-}
-code.pytorch {
-}
-code.tensorflow {
-}
-a {
 }
 .button {
     cursor: pointer;
@@ -401,6 +366,45 @@ a {
     display: inline-block;
     font-size: 16px;
 }
+div.disqus {
+    max-width: 1000px;
+    margin: auto;
+}
+
+div.main {
+    text-align: center;
+    padding-top: 10px;
+}
+div.outer {
+    display: inline-block;
+    white-space: nowrap;
+}
+span.description {
+    text-align: left;
+    vertical-align: top;
+    display: inline-block;
+    font-size: large;
+    line-height: 112%;
+    width: 400px;
+    white-space: normal;
+}
+code  {
+    text-align: left;
+    vertical-align: top;
+    display: inline-block;
+    width: 100ch;
+    padding-left: 15px;
+}
+pre {
+    display: inline-block;
+}
+code.empty {
+    display: inline-block;
+    background: #DDDDDD;
+    margin-top: 8px;
+    max-height: 3px;
+}
+
 td.linenos { background-color: #f0f0f0; padding-right: 10px; }
 span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
 pre { line-height: 125%; font-family: Menlo, "Courier New", Courier, monospace; margin: 0 }
@@ -478,7 +482,7 @@ head = """
 """+ style_light +"""
 </head>
 
-<body onload="toggleDyNet(); togglePyTorch(); toggleTensorflow()">
+<body onload="togglePyTorch(); toggleTensorflow()">
 
 <h1>Implementing a neural Part-of-Speech tagger</h1>
 <div class="header-outer">
@@ -525,7 +529,7 @@ function toggleDyNet() {
     for (var i = dyitems.length - 1; i >= 0; i--)
     {
         if (dyitems[i].style.display === "none") {
-            dyitems[i].style.display = "block";
+            dyitems[i].style.display = "inline-block";
             dybutton.textContent = "Hide DyNet";
             dybutton.style.backgroundColor = "#008CBA";
         } else {
@@ -542,7 +546,7 @@ function togglePyTorch() {
     for (var i = pyitems.length - 1; i >= 0; i--)
     {
         if (pyitems[i].style.display === "none") {
-            pyitems[i].style.display = "block";
+            pyitems[i].style.display = "inline-block";
             ptbutton.textContent = "Hide PyTorch";
             ptbutton.style.backgroundColor = "#008CBA";
         } else {
@@ -559,7 +563,7 @@ function toggleTensorflow() {
     for (var i = tfitems.length - 1; i >= 0; i--)
     {
         if (tfitems[i].style.display === "none") {
-            tfitems[i].style.display = "block";
+            tfitems[i].style.display = "inline-block";
             tfbutton.textContent = "Hide Tensorflow";
             tfbutton.style.backgroundColor = "#008CBA";
         } else {
@@ -583,7 +587,7 @@ function toggleShared() {
     } else {
         for (var i = allitems.length - 1; i >= 0; i--)
         {
-            allitems[i].style.display = "block";
+            allitems[i].style.display = "inline-block";
         }
     }
 }

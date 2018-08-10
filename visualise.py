@@ -390,9 +390,15 @@ div.header {
     display: inline-block;
     font-size: 16px;
 }
-#dybutton { background: #f1f5a4; }
-#tfbutton { background: #a9d9e4; }
-#ptbutton { background: #f7c1a4; }
+#dybutton {
+    background-color: #f8fad2;
+}
+#tfbutton {
+    background-color: #d0eaf0;
+}
+#ptbutton { 
+    background-color: #fbe1d3;
+}
 div.disqus {
     max-width: 1000px;
     margin: auto;
@@ -404,36 +410,38 @@ div.main {
 }
 div.outer {
     white-space: nowrap;
+    display: none;
 }
 span.description {
     text-align: left;
     vertical-align: top;
-    display: inline-block;
     font-size: large;
     line-height: 112%;
     width: 400px;
     white-space: normal;
     margin-left: 5px;
     margin-right: 5px;
+    display: none;
 }
 span.description.dynet {
     background-color: #f8fad2;
+    display: none;
 }
 span.description.pytorch {
     background-color: #fbe1d3;
+    display: none;
 }
 span.description.tensorflow {
     background-color: #d0eaf0;
+    display: none;
 }
 code {
     text-align: left;
     vertical-align: top;
-    display: inline-block;
     width: 100ch;
+    display: none;
 }
-pre {
-    display: inline-block;
-}
+pre { }
 td.linenos { background-color: #f0f0f0; padding-right: 10px; }
 span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
 pre { line-height: 125%; font-family: Menlo, "Courier New", Courier, monospace; margin: 0 }
@@ -517,7 +525,7 @@ head = """
 """+ style_light +"""
 </head>
 
-<body onload="toggleDyNet(); togglePyTorch(); toggleTensorflow()">
+<body>
 <h1>Implementing a neural Part-of-Speech tagger</h1>
 <div class="header-outer">
 <div class=header>
@@ -557,26 +565,17 @@ Making this helped me understand all three frameworks better. Hopefully you will
 tail = """
 
 <script>
-function dyShowing() {
-    return document.getElementsByClassName("dynet")[0].style.display !== "none";
-}
-function ptShowing() {
-    return document.getElementsByClassName("pytorch")[0].style.display !== "none";
-}
-function tfShowing() {
-    return document.getElementsByClassName("tensorflow")[0].style.display !== "none";
-}
+var dyShowing = false;
+var tfShowing = false;
+var ptShowing = false;
 function whichShowing() {
-    var dy = dyShowing();
-    var tf = tfShowing();
-    var pt = ptShowing();
-    if (dy && tf && pt) return "all";
-    else if (dy && pt) return "-t";
-    else if (dy && tf) return "-p";
-    else if (pt && tf) return "-d";
-    else if (dy) return "d";
-    else if (pt) return "p";
-    else if (tf) return "t";
+    if (dyShowing && tfShowing && ptShowing) return "all";
+    else if (dyShowing && ptShowing) return "-t";
+    else if (dyShowing && tfShowing) return "-p";
+    else if (ptShowing && tfShowing) return "-d";
+    else if (dyShowing) return "d";
+    else if (ptShowing) return "p";
+    else if (tfShowing) return "t";
     else return "-";
 }
 function toggleItem(toEdit, showing) {
@@ -607,16 +606,20 @@ function toggleItem(toEdit, showing) {
         } else {
             toEdit.style.display = "none";
         }
-    } else if (toEdit.classList.contains("right")) {
-        if (showing === "-d" && (!toEdit.classList.contains("dynet"))) {
+    } else if (toEdit.classList.contains("centre")) {
+        if (
+            (showing === "all" && (!toEdit.classList.contains("tensorflow"))) ||
+            (showing === "-p" && (!toEdit.classList.contains("pytorch"))) || 
+            (showing === "-t" && (!toEdit.classList.contains("tensorflow")))) {
             toEdit.style.display = "inline-block";
         } else {
             toEdit.style.display = "none";
         }
-    } else if (toEdit.classList.contains("centre")) {
-        if (showing === "all" || 
-            (showing === "-p" && (!toEdit.classList.contains("pytorch"))) || 
-            (showing === "-t" && (!toEdit.classList.contains("tensorflow")))) {
+    } else if (toEdit.classList.contains("right")) {
+        if (
+            (showing === "-d" && (!toEdit.classList.contains("dynet"))) ||
+            (showing === "all" && toEdit.classList.contains("tensorflow"))
+        ) {
             toEdit.style.display = "inline-block";
         } else {
             toEdit.style.display = "none";
@@ -640,58 +643,34 @@ function toggleItem(toEdit, showing) {
     }
 }
 function toggleDyNet() {
-    var dyitems = document.getElementsByClassName("dynet");
-    var dybutton = document.getElementById("dybutton");
-    var wasShowing = dyShowing();
-    if (wasShowing) dybutton.style.backgroundColor = "#f8fad2";
-    else dybutton.style.backgroundColor = "#f1f5a4";
+    dyShowing = ! dyShowing;
 
-    var showing = whichShowing();
-    if (showing == "-") showing = "d";
-    else if (showing == "d") showing = "-";
-    else if (showing == "p") showing = "-t";
-    else if (showing == "t") showing = "-d";
-    else if (showing == "-d") showing = "all";
-    else if (showing == "-p") showing = "t";
-    else if (showing == "-t") showing = "p";
-    else if (showing == "all") showing = "-d";
-    toggleAll(showing);
+    var dybutton = document.getElementById("dybutton");
+    if (dyShowing) dybutton.style.backgroundColor = "#f1f5a4";
+    else dybutton.style.backgroundColor = "#f8fad2";
+
+    toggleAll();
 }
 function togglePyTorch() {
+    ptShowing = ! ptShowing;
+
     var ptbutton = document.getElementById("ptbutton");
-    var wasShowing = ptShowing();
-    if (wasShowing) ptbutton.style.backgroundColor = "#fbe1d3";
+    if (! ptShowing) ptbutton.style.backgroundColor = "#fbe1d3";
     else ptbutton.style.backgroundColor = "#f7c1a4";
 
-    var showing = whichShowing();
-    if (showing == "-") showing = "p";
-    else if (showing == "d") showing = "-t";
-    else if (showing == "p") showing = "-";
-    else if (showing == "t") showing = "-d";
-    else if (showing == "-d") showing = "t";
-    else if (showing == "-p") showing = "all";
-    else if (showing == "-t") showing = "d";
-    else if (showing == "all") showing = "-p";
-    toggleAll(showing);
+    toggleAll();
 }
 function toggleTensorflow() {
+    tfShowing = ! tfShowing;
+
     var tfbutton = document.getElementById("tfbutton");
-    var wasShowing = tfShowing();
-    if (wasShowing) tfbutton.style.backgroundColor = "#d0eaf0";
+    if (! tfShowing) tfbutton.style.backgroundColor = "#d0eaf0";
     else tfbutton.style.backgroundColor = "#a9d9e4";
 
-    var showing = whichShowing();
-    if (showing == "-") showing = "t";
-    else if (showing == "d") showing = "-p";
-    else if (showing == "p") showing = "-d";
-    else if (showing == "t") showing = "-";
-    else if (showing == "-d") showing = "p";
-    else if (showing == "-p") showing = "d";
-    else if (showing == "-t") showing = "all";
-    else if (showing == "all") showing = "-t";
-    toggleAll(showing);
+    toggleAll();
 }
-function toggleAll(showing) {
+function toggleAll() {
+    showing = whichShowing();
     var dyitems = document.getElementsByClassName("dynet");
     for (var i = dyitems.length - 1; i >= 0; i--) {
         toggleItem(dyitems[i], showing);
@@ -732,6 +711,7 @@ I developed this code with help from many people and resources. In particular:
 </div>
 </div>
 
+<!--
 <div class="disqus">
 <div id="disqus_thread"></div>
 </div>
@@ -749,7 +729,7 @@ s.setAttribute('data-timestamp', +new Date());
 })();
 </script>
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-
+-->
 </body>
 </html>"""
 

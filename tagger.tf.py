@@ -1,5 +1,6 @@
 #### Imports
 #### We use argparse for processing command line arguments, random for shuffling our data, sys for flushing output, and numpy for handling vectors of data.
+# Tensorflow Implementation
 import argparse
 import random
 import sys

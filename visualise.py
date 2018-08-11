@@ -66,16 +66,12 @@ def print_comment_and_code(content, p0, p1, p2):
 
     print("""<div class="outer {}">""".format(class_name))
     
-    div_comment = """<span class="{}">"""
+    div_comment = """<span class="description {}">""".format(class_name)
     if len(''.join(comment).strip()) > 0:
         div_comment += "\n<br />\n".join(comment) +"<br /><br />"
     else:
         div_comment += "&nbsp;"
     div_comment += "</span>"
-
-    div_comment_l = div_comment.format("description "+ class_name +" left")
-    div_comment_c = div_comment.format("description "+ class_name +" centre")
-    div_comment_r = div_comment.format("description "+ class_name +" right")
 
     if len(''.join(comment).strip()) > 0:
         if code0 == "&nbsp;":
@@ -83,24 +79,22 @@ def print_comment_and_code(content, p0, p1, p2):
                 order = 'tfonly'
             else:
                 order = 'ptonly'
-
+    
     div_code0 = """<code class="dynet">""" + code0 +"</code>"
     div_code1 = """<code class="pytorch">""" + code1 +"</code>"
     div_code2 = """<code class="tensorflow">""" + code2 + "</code>"
- 
-###  dy left
-###  pt left
-###  tf left
-###  dy pt centre
-###  dy tf centre
-###  dy pt tf centre
-###  pt tf right
+    if class_name == 'pytorch':
+        div_code0 = """<code class="dynet pytorch-line">""" + code0 +"</code>"
+        div_code1 = """<code class="pytorch">""" + code1 +"</code>"
+        div_code2 = """<code class="tensorflow">""" + code2 + "</code>"
+    elif class_name == 'tensorflow':
+        div_code0 = """<code class="dynet tensorflow-line">""" + code0 +"</code>"
+        div_code1 = """<code class="pytorch tensorflow-line">""" + code1 +"</code>"
+        div_code2 = """<code class="tensorflow">""" + code2 + "</code>"
 
-    print(div_comment_l, end="")
+    print(div_comment, end="")
     print(div_code0, end="")
-    print(div_comment_c, end="")
     print(div_code1, end="")
-    print(div_comment_r, end="")
     print(div_code2, end="")
 
     print("</div>")
@@ -380,24 +374,28 @@ div.header-outer {
 div.header {
     max-width: 1000px;
 }
-.button {
+button {
     cursor: pointer;
-    border: 10px;
     margin: 5px;
+    border: none;
     padding: 15px 32px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
+    outline: none;
 }
 #dybutton {
     background-color: #f8fad2;
+    border: 3px solid #f8fad2;
 }
 #tfbutton {
     background-color: #d0eaf0;
+    border: 3px solid #d0eaf0;
 }
 #ptbutton { 
     background-color: #fbe1d3;
+    border: 3px solid #fbe1d3;
 }
 div.disqus {
     max-width: 1000px;
@@ -419,8 +417,6 @@ span.description {
     line-height: 112%;
     width: 400px;
     white-space: normal;
-    margin-left: 5px;
-    margin-right: 5px;
     display: none;
 }
 span.description.dynet {
@@ -440,6 +436,20 @@ code {
     vertical-align: top;
     width: 100ch;
     display: none;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+code.pytorch-line {
+    display: inline-block;
+    background: #fbe1d3;
+    margin-top: 8px;
+    max-height: 3px;
+}
+code.tensorflow-line {
+    display: inline-block;
+    background: #d0eaf0;
+    margin-top: 8px;
+    max-height: 3px;
 }
 pre { }
 td.linenos { background-color: #f0f0f0; padding-right: 10px; }
@@ -579,75 +589,39 @@ function whichShowing() {
     else return "-";
 }
 function toggleItem(toEdit, showing) {
-    if (toEdit.classList.contains('outer')) {
-        if (
-            (showing === "d" && toEdit.classList.contains("dynet")) ||
-            (showing === "p" && toEdit.classList.contains("pytorch")) ||
-            (showing === "t" && toEdit.classList.contains("tensorflow")) ||
-            (showing === "-d" && toEdit.classList.contains("pytorch")) ||
-            (showing === "-p" && toEdit.classList.contains("dynet")) ||
-            (showing === "-t" && toEdit.classList.contains("dynet")) ||
-            (showing === "-d" && toEdit.classList.contains("tensorflow")) ||
-            (showing === "-p" && toEdit.classList.contains("tensorflow")) ||
-            (showing === "-t" && toEdit.classList.contains("pytorch")) ||
-            (showing != "-" && toEdit.classList.contains("shared-content")) ||
-            showing === "all"
-           ) {
+    if (
+        (showing === "d" && toEdit.classList.contains("dynet")) ||
+        (showing === "p" && toEdit.classList.contains("pytorch")) ||
+        (showing === "t" && toEdit.classList.contains("tensorflow")) ||
+        (showing === "-d" && toEdit.classList.contains("pytorch")) ||
+        (showing === "-p" && toEdit.classList.contains("dynet")) ||
+        (showing === "-t" && toEdit.classList.contains("dynet")) ||
+        (showing === "-d" && toEdit.classList.contains("tensorflow")) ||
+        (showing === "-p" && toEdit.classList.contains("tensorflow")) ||
+        (showing === "-t" && toEdit.classList.contains("pytorch")) ||
+        (showing != "-" && toEdit.classList.contains("shared-content")) ||
+        showing === "all"
+       ) {
+        if (toEdit.classList.contains('outer')) {
             toEdit.style.display = "block";
         } else {
-            toEdit.style.display = "none";
-        }
-    } else if (toEdit.classList.contains("left")) {
-        if ((showing === "d" && toEdit.classList.contains("dynet")) ||
-            (showing === "p" && toEdit.classList.contains("pytorch")) ||
-            (showing === "t" && toEdit.classList.contains("tensorflow")) ||
-            ((showing === "p" || showing === "t" || showing === "d") && toEdit.classList.contains("shared-content"))) {
             toEdit.style.display = "inline-block";
-        } else {
-            toEdit.style.display = "none";
-        }
-    } else if (toEdit.classList.contains("centre")) {
-        if (
-            (showing === "all" && (!toEdit.classList.contains("tensorflow"))) ||
-            (showing === "-p" && (!toEdit.classList.contains("pytorch"))) || 
-            (showing === "-t" && (!toEdit.classList.contains("tensorflow")))) {
-            toEdit.style.display = "inline-block";
-        } else {
-            toEdit.style.display = "none";
-        }
-    } else if (toEdit.classList.contains("right")) {
-        if (
-            (showing === "-d" && (!toEdit.classList.contains("dynet"))) ||
-            (showing === "all" && toEdit.classList.contains("tensorflow"))
-        ) {
-            toEdit.style.display = "inline-block";
-        } else {
-            toEdit.style.display = "none";
         }
     } else {
-        if ((showing === "d" && toEdit.classList.contains("dynet")) ||
-            (showing === "p" && toEdit.classList.contains("pytorch")) ||
-            (showing === "t" && toEdit.classList.contains("tensorflow")) ||
-            (showing === "-d" && toEdit.classList.contains("pytorch")) ||
-            (showing === "-p" && toEdit.classList.contains("dynet")) ||
-            (showing === "-t" && toEdit.classList.contains("dynet")) ||
-            (showing === "-d" && toEdit.classList.contains("tensorflow")) ||
-            (showing === "-p" && toEdit.classList.contains("tensorflow")) ||
-            (showing === "-t" && toEdit.classList.contains("pytorch")) ||
-            (showing != "-" && toEdit.classList.contains("shared-content")) ||
-            (showing === "all")) {
-            toEdit.style.display = "inline-block";
-        } else {
-            toEdit.style.display = "none";
-        }
+        toEdit.style.display = "none";
     }
 }
 function toggleDyNet() {
     dyShowing = ! dyShowing;
 
     var dybutton = document.getElementById("dybutton");
-    if (dyShowing) dybutton.style.backgroundColor = "#f1f5a4";
-    else dybutton.style.backgroundColor = "#f8fad2";
+    if (dyShowing) {
+        dybutton.style.backgroundColor = "#f1f5a4";
+        dybutton.style.border = "3px solid #777777";
+    } else {
+        dybutton.style.backgroundColor = "#f8fad2";
+        dybutton.style.border = "3px solid #f8fad2";
+    }
 
     toggleAll();
 }
@@ -655,8 +629,13 @@ function togglePyTorch() {
     ptShowing = ! ptShowing;
 
     var ptbutton = document.getElementById("ptbutton");
-    if (! ptShowing) ptbutton.style.backgroundColor = "#fbe1d3";
-    else ptbutton.style.backgroundColor = "#f7c1a4";
+    if (ptShowing) {
+        ptbutton.style.backgroundColor = "#f7c1a4";
+        ptbutton.style.border = "3px solid #777777";
+    } else {
+        ptbutton.style.backgroundColor = "#fbe1d3";
+        ptbutton.style.border = "3px solid #fbe1d3";
+    }
 
     toggleAll();
 }
@@ -664,8 +643,13 @@ function toggleTensorflow() {
     tfShowing = ! tfShowing;
 
     var tfbutton = document.getElementById("tfbutton");
-    if (! tfShowing) tfbutton.style.backgroundColor = "#d0eaf0";
-    else tfbutton.style.backgroundColor = "#a9d9e4";
+    if (tfShowing) {
+        tfbutton.style.backgroundColor = "#a9d9e4";
+        tfbutton.style.border = "3px solid #777777";
+    } else {
+        tfbutton.style.backgroundColor = "#d0eaf0";
+        tfbutton.style.border = "3px solid #d0eaf0";
+    }
 
     toggleAll();
 }

@@ -10,9 +10,3 @@ To generate the site, install the Python library `pygments` and run:
 ```
 ./visualise.py tagger.dy.py tagger.pt.py tagger.tf.py > docs/index.html
 ```
-
-Todo:
-- Check results still match / code has not been broken
-
-Ideas:
-- Maybe add additional comments as roll-over pop-ups (and some indication that they are there)

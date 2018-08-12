@@ -349,9 +349,10 @@ def main():
 style_light = """
   <style type="text/css">
 body {
+    padding: 0px;
+    margin: 0px;
 }
 h1 {
-    background: #f3f3f3;
     margin: 0px;
     text-align: center;
     padding: 10px;
@@ -430,6 +431,9 @@ span.description.pytorch {
 span.description.tensorflow {
     background-color: #d0eaf0;
     display: none;
+}
+span.paragraph-start {
+    font-weight: bold;
 }
 code {
     text-align: left;
@@ -543,8 +547,8 @@ head = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
 </head>
 
 <body>
-<h1>Implementing a neural Part-of-Speech tagger</h1>
 <div class="header-outer">
+<h1>Implementing a neural Part-of-Speech tagger</h1>
 <div class=header>
 <p>
 DyNet, PyTorch and Tensorflow are complex frameworks with different ways of approaching neural network implementation and variations in default behaviour.
@@ -554,15 +558,17 @@ The design of the code is also geared towards providing a complete picture of ho
 For a non-tutorial version of this code it would be better to use abstraction to improve flexibility, but that would have complicated the flow here.
 </p>
 <p>
-Use the buttons to show one or more implementations and their associated comments (note, depending on your screen size you may need to scroll to see all the code).
-Matching or closely related content is aligned.
-Framework-specific comments are highlighted in a colour that matches their button and a line is used to make the link from the comment to the code clear.
+<span class="paragraph-start">Model:</span>
+The three implementations below all define a part-of-speech tagger with word embeddings initialised using GloVe, fed into a one-layer bidirectional LSTM, followed by a matrix multiplication to produce scores for tags.
+They all score ~97.2% on the development set of the Penn Treebank.
+The specific hyperparameter choices follows <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a> and matches their performance for the setting without a CRF layer or character-based word embeddings.
 The <a href="https://github.com/jkkummerfeld/neural-tagger-tutorial">repository</a> for this page provides the code in runnable form.
 The only dependencies are the respective frameworks (DyNet <a href="https://github.com/clab/dynet/releases/tag/2.0.3">2.0.3</a>, PyTorch <a href="https://github.com/pytorch/pytorch/releases/tag/v0.4.1">0.4.1</a> and Tensorflow <a href="https://github.com/tensorflow/tensorflow/releases/tag/v1.9.0">1.9.0</a>).
 </p>
 <p>
-The three implementations below all produce part-of-speech taggers that score ~97.2% on the development set of the Penn Treebank.
-The specific hyperparameter choices follows <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a> and matches their performance for the setting without a CRF layer or character-based word embeddings.
+<span class="paragraph-start">Website usage:</span> Use the buttons to show one or more implementations and their associated comments (note, depending on your screen size you may need to scroll to see all the code).
+Matching or closely related content is aligned.
+Framework-specific comments are highlighted in a colour that matches their button and a line is used to make the link from the comment to the code clear.
 </p>
 <p>
 Making this helped me understand all three frameworks better. Hopefully you will find it informative too!
@@ -693,8 +699,8 @@ A few miscellaneous notes:
 <p>
 I developed this code with help from many people and resources. In particular:
 <ul>
+    <li> Feedback from <a href="http://proebsting.cs.arizona.edu/">Todd Proebsting</a>, <a href="http://www.it.usyd.edu.au/~judy/">Judy Kay</a>, <a href="http://www.it.usyd.edu.au/~bob/">Bob Kummerfeld</a>, and members of the <a href="http://web.eecs.umich.edu/~wlasecki/croma.html">CROMA Lab</a>.</li>
     <li> <a href="https://github.com/jiesutd/NCRFpp">NCRFpp</a>, the code associated with <a href="https://arxiv.org/abs/1806.04470">Yang, Liang, and Zhang (CoLing 2018)</a>, which was my starting point for PyTorch and my reference point when trying to check performance for the others.</li>
-    <li> Members of the <a href="http://web.eecs.umich.edu/~wlasecki/croma.html">CROMA Lab</a> who gave feedback during development.</li>
     <li> Guillaume Genthial's blog post about <a href="https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html">Sequence Tagging with Tensorflow</a>. </li>
     <li> The DyNet <a href="https://github.com/clab/dynet/blob/master/examples/tagger/bilstmtagger.py">example tagger</a>. </li>
 </ul>

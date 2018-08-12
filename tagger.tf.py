@@ -17,7 +17,7 @@ LEARNING_DECAY_RATE = 0.05 # LEARNING_DECAY_RATE - part of a rescaling of the le
 EPOCHS = 100 # EPOCHS - number of passes through the data in training.
 KEEP_PROB = 0.5 # KEEP_PROB - probability of keeping a value when applying dropout.
 GLOVE = "../data/glove.6B.100d.txt" # GLOVE - location of glove vectors.
-# WEIGHT_DECAY = 1e-8 See note at the bottome of the page
+# WEIGHT_DECAY = 1e-8 See note at the bottom of the page
 
 #### Tensorflow library import
 import tensorflow as tf
@@ -58,7 +58,7 @@ def main():
     train = read_data(args.training_data)
     dev = read_data(args.dev_data)
 
-    #### These indices map from strings to integers, whch we apply to the input for our model. UNK is added to our mapping so that there is a vector we can use when we encounter unknown words. The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kept for consistency.
+    #### These indices map from strings to integers, which we apply to the input for our model. UNK is added to our mapping so that there is a vector we can use when we encounter unknown words. The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kept for consistency.
     # Make indices
     id_to_token = [PAD, UNK]
     token_to_id = {PAD: 0, UNK: 1}
@@ -129,7 +129,7 @@ def main():
         # Recurrent dropout options
         #        variational_recurrent=True, dtype=tf.float32,
         #        input_size=DIM_EMBEDDING)
-        #### Similarly, multi-layer networks are a common usecase. In Tensorflow, we would wrap a list of cells with a MultiRNNCell.
+        #### Similarly, multi-layer networks are a common use case. In Tensorflow, we would wrap a list of cells with a MultiRNNCell.
         # Multi-layer cell creation
         # e_cell_f = tf.contrib.rnn.MultiRNNCell([e_cell_f])
         #### We are making a bidirectional network, so we need another cell for the reverse direction
@@ -169,7 +169,7 @@ def main():
         e_auto_output = tf.argmax(e_predictions, 2, output_type=tf.int32)
 
         # Do training
-        #### Configure the system environment. By default tensorflow uses all available GPUs and RAM. These lines limit the number of GPUs used and the amount of RAM. To limit which GPUs are used, set the environment variable CUDA_VISIBLE_DEVICES (e.g. "export CUDA_VISIBLE_DEVICES=0,1").
+        #### Configure the system environment. By default Tensorflow uses all available GPUs and RAM. These lines limit the number of GPUs used and the amount of RAM. To limit which GPUs are used, set the environment variable CUDA_VISIBLE_DEVICES (e.g. "export CUDA_VISIBLE_DEVICES=0,1").
         config = tf.ConfigProto(
             device_count = {'GPU': 0},
             gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction = 0.8)
@@ -179,7 +179,7 @@ def main():
             #### Run executes operations, in this case initializing the variables.
             sess.run(tf.global_variables_initializer())
 
-            #### To make the code match across the three versions, we group together some framework specifc values needed when doing a pass over the data.
+            #### To make the code match across the three versions, we group together some framework specific values needed when doing a pass over the data.
             expressions = [
                 e_auto_output, e_gold_output, e_input, e_keep_prob, e_lengths,
                 e_loss, e_train, e_mask, e_learning_rate, sess
@@ -246,7 +246,7 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
         lengths = np.array([len(v[0]) for v in batch])
         mask = np.zeros([len(batch), max_length])
         for n, (tokens, tags) in enumerate(batch):
-            #### Using the indices we map our srings to numbers.
+            #### Using the indices we map our strings to numbers.
             token_ids = [token_to_id.get(simplify_token(t), 0) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
             #### Fill the arrays, leaving the remaining values as zero (our padding value).

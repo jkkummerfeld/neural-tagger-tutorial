@@ -19,11 +19,11 @@ KEEP_PROB = 0.5 # KEEP_PROB - probability of keeping a value when applying dropo
 GLOVE = "../data/glove.6B.100d.txt" # GLOVE - location of glove vectors.
 WEIGHT_DECAY = 1e-8 # WEIGHT_DECAY - part of a rescaling of weights when an update occurs.
 
-#### DyNet specfic imports
+#### DyNet specific imports
 #### The first allows us to configure DyNet from within code rather than on the command line:  mem is the amount of system memory initially allocated (DyNet has its own memory management), autobatch toggles automatic parallelisation of computations, weight_decay rescales weights by (1 - decay) after every update, random_seed sets the seed for random number generation.
 import dynet_config
 dynet_config.set(mem=256, autobatch=0, weight_decay=WEIGHT_DECAY,random_seed=0)
-# dynet_config.set_gpu() 
+# dynet_config.set_gpu() for when we want to run with GPUs
 import dynet as dy 
 
 ####
@@ -62,7 +62,7 @@ def main():
     train = read_data(args.training_data)
     dev = read_data(args.dev_data)
 
-    #### These indices map from strings to integers, whch we apply to the input for our model. UNK is added to our mapping so that there is a vector we can use when we encounter unknown words. The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kept for consistency.
+    #### These indices map from strings to integers, which we apply to the input for our model. UNK is added to our mapping so that there is a vector we can use when we encounter unknown words. The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kept for consistency.
     # Make indices
     id_to_token = [PAD, UNK]
     token_to_id = {PAD: 0, UNK: 1}
@@ -144,7 +144,7 @@ def main():
     #### DyNet clips gradients by default, which we disable here (this can have a big impact on performance).
     trainer.set_clip_threshold(-1)
 
-    #### To make the code match across the three versions, we group together some framework specifc values needed when doing a pass over the data.
+    #### To make the code match across the three versions, we group together some framework specific values needed when doing a pass over the data.
     expressions = (pEmbedding, pOutput, f_lstm, b_lstm, trainer)
     #### Main training loop, in which we shuffle the data, set the learning rate, do one complete pass over the training data, then evaluate on the development data.
     for epoch in range(EPOCHS):

@@ -293,15 +293,15 @@ Making this helped me understand all three frameworks better. Hopefully you will
 <span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
 <span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
 <span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
-<span class="c1"># WEIGHT_DECAY = 1e-8 See note at the bottome of the page</span>
+<span class="c1"># WEIGHT_DECAY = 1e-8 See note at the bottom of the page</span>
 
 </pre></code></div>
 <div class="outer dynet">
-<span class="description dynet">DyNet specfic imports
+<span class="description dynet">DyNet specific imports
 <br />
 The first allows us to configure DyNet from within code rather than on the command line:  mem is the amount of system memory initially allocated (DyNet has its own memory management), autobatch toggles automatic parallelisation of computations, weight_decay rescales weights by (1 - decay) after every update, random_seed sets the seed for random number generation.<br /><br /></span><code class="dynet"><pre><span></span><span class="kn">import</span> <span class="nn">dynet_config</span>
 <span class="n">dynet_config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">mem</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">autobatch</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="n">WEIGHT_DECAY</span><span class="p">,</span><span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="c1"># dynet_config.set_gpu() </span>
+<span class="c1"># dynet_config.set_gpu() for when we want to run with GPUs</span>
 <span class="kn">import</span> <span class="nn">dynet</span> <span class="kn">as</span> <span class="nn">dy</span>
 
 </pre></code><code class="pytorch">&nbsp;</code><code class="tensorflow">&nbsp;</code></div>
@@ -428,7 +428,7 @@ The first allows us to configure DyNet from within code rather than on the comma
 
 </pre></code></div>
 <div class="outer shared-content">
-<span class="description shared-content">These indices map from strings to integers, whch we apply to the input for our model. UNK is added to our mapping so that there is a vector we can use when we encounter unknown words. The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kept for consistency.<br /><br /></span><code class="dynet"><div class="source"><pre><span></span>    <span class="c1"># Make indices</span>
+<span class="description shared-content">These indices map from strings to integers, which we apply to the input for our model. UNK is added to our mapping so that there is a vector we can use when we encounter unknown words. The special PAD symbol is used in PyTorch and Tensorflow as part of shaping the data in a batch to be a consistent size. It is not needed for DyNet, but kept for consistency.<br /><br /></span><code class="dynet"><div class="source"><pre><span></span>    <span class="c1"># Make indices</span>
     <span class="n">id_to_token</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">,</span> <span class="n">UNK</span><span class="p">]</span>
     <span class="n">token_to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">PAD</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">UNK</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
     <span class="n">id_to_tag</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAD</span><span class="p">]</span>
@@ -620,7 +620,7 @@ The first allows us to configure DyNet from within code rather than on the comma
 </pre></div>
 </code><code class="tensorflow">&nbsp;</code></div>
 <div class="outer pytorch">
-<span class="description pytorch">The learning rate for each epoch is set by multiplying the inital rate by the factor produced by this function.<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><pre><span></span>    <span class="n">rescale_lr</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">epoch</span><span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
+<span class="description pytorch">The learning rate for each epoch is set by multiplying the initial rate by the factor produced by this function.<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><pre><span></span>    <span class="n">rescale_lr</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">epoch</span><span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">LEARNING_DECAY_RATE</span> <span class="o">*</span> <span class="n">epoch</span><span class="p">)</span>
     <span class="n">scheduler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">LambdaLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span>
             <span class="n">lr_lambda</span><span class="o">=</span><span class="n">rescale_lr</span><span class="p">)</span>
 
@@ -664,7 +664,7 @@ This line creates a new graph and makes it the default graph for operations to b
 </pre></div>
 </code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">Similarly, multi-layer networks are a common usecase. In Tensorflow, we would wrap a list of cells with a MultiRNNCell.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Multi-layer cell creation</span>
+<span class="description tensorflow">Similarly, multi-layer networks are a common use case. In Tensorflow, we would wrap a list of cells with a MultiRNNCell.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Multi-layer cell creation</span>
         <span class="c1"># e_cell_f = tf.contrib.rnn.MultiRNNCell([e_cell_f])</span>
 </pre></div>
 </code></div>
@@ -716,7 +716,7 @@ This line creates a new graph and makes it the default graph for operations to b
 </pre></div>
 </code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">Configure the system environment. By default tensorflow uses all available GPUs and RAM. These lines limit the number of GPUs used and the amount of RAM. To limit which GPUs are used, set the environment variable CUDA_VISIBLE_DEVICES (e.g. "export CUDA_VISIBLE_DEVICES=0,1").<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">config</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ConfigProto</span><span class="p">(</span>
+<span class="description tensorflow">Configure the system environment. By default Tensorflow uses all available GPUs and RAM. These lines limit the number of GPUs used and the amount of RAM. To limit which GPUs are used, set the environment variable CUDA_VISIBLE_DEVICES (e.g. "export CUDA_VISIBLE_DEVICES=0,1").<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">config</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ConfigProto</span><span class="p">(</span>
             <span class="n">device_count</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;GPU&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
             <span class="n">gpu_options</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">GPUOptions</span><span class="p">(</span><span class="n">per_process_gpu_memory_fraction</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">)</span>
         <span class="p">)</span>
@@ -731,7 +731,7 @@ This line creates a new graph and makes it the default graph for operations to b
 
 </pre></code></div>
 <div class="outer shared-content">
-<span class="description shared-content">To make the code match across the three versions, we group together some framework specifc values needed when doing a pass over the data.<br /><br /></span><code class="dynet"><div class="source"><pre><span></span>    <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">pEmbedding</span><span class="p">,</span> <span class="n">pOutput</span><span class="p">,</span> <span class="n">f_lstm</span><span class="p">,</span> <span class="n">b_lstm</span><span class="p">,</span> <span class="n">trainer</span><span class="p">)</span>
+<span class="description shared-content">To make the code match across the three versions, we group together some framework specific values needed when doing a pass over the data.<br /><br /></span><code class="dynet"><div class="source"><pre><span></span>    <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">pEmbedding</span><span class="p">,</span> <span class="n">pOutput</span><span class="p">,</span> <span class="n">f_lstm</span><span class="p">,</span> <span class="n">b_lstm</span><span class="p">,</span> <span class="n">trainer</span><span class="p">)</span>
 </pre></div>
 </code><code class="pytorch"><div class="source"><pre><span></span>    <span class="n">expressions</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">)</span>
 </pre></div>
@@ -1047,8 +1047,11 @@ We pull out the output vector from the cell state at each step.<br /><br /></spa
 </pre></div>
 </code><code class="tensorflow">&nbsp;</code></div>
 <div class="outer pytorch">
-<span class="description pytorch">Convert tokens and tags from strings to numbers using the indices<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><pre><span></span>        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
-            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
+<span class="description pytorch">Convert tokens and tags from strings to numbers using the indices<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><div class="source"><pre><span></span>        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+</pre></div>
+</code><code class="tensorflow">&nbsp;</code></div>
+<div class="outer pytorch">
+<span class="description pytorch">Using the indices we map our strings to numbers.<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><pre><span></span>            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
             <span class="n">tag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_to_id</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
 
 </pre></code><code class="tensorflow">&nbsp;</code></div>
@@ -1097,7 +1100,7 @@ We pull out the output vector from the cell state at each step.<br /><br /></spa
 </pre></div>
 </code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">Using the indices we map our srings to numbers.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
+<span class="description tensorflow">Using the indices we map our strings to numbers.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
             <span class="n">tag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_to_id</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
 </pre></div>
 </code></div>

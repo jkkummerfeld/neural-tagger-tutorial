@@ -17,9 +17,9 @@ LEARNING_DECAY_RATE = 0.05 # LEARNING_DECAY_RATE - part of a rescaling of the le
 EPOCHS = 100 # EPOCHS - number of passes through the data in training.
 KEEP_PROB = 0.5 # KEEP_PROB - probability of keeping a value when applying dropout.
 GLOVE = "../data/glove.6B.100d.txt" # GLOVE - location of glove vectors.
-# WEIGHT_DECAY = 1e-8 See note at the bottom of the page
+# WEIGHT_DECAY = 1e-8 Not used, see note at the bottom of the page
 
-#### Tensorflow library import
+#### Tensorflow library import.
 import tensorflow as tf
 
 ####
@@ -113,26 +113,26 @@ def main():
         e_keep_prob = tf.placeholder(tf.float32, name='keep_prob')
         e_learning_rate = tf.placeholder(tf.float32, name='learning_rate')
 
-        #### The embedding matrix is a variable (so they can shift in training), initialized with the vectors defined above.
         # Define word embedding
+        #### The embedding matrix is a variable (so they can shift in training), initialized with the vectors defined above.
         glove_init = tf.constant_initializer(np.array(pretrained_list))
         e_embedding = tf.get_variable("embedding", [NWORDS, DIM_EMBEDDING],
                 initializer=glove_init)
         e_embed = tf.nn.embedding_lookup(e_embedding, e_input)
 
-        #### We create an LSTM cell, then wrap it in a class that applies dropout to the input and output.
         # Define LSTM cells
+        #### We create an LSTM cell, then wrap it in a class that applies dropout to the input and output.
         e_cell_f = tf.contrib.rnn.BasicLSTMCell(LSTM_HIDDEN)
         e_cell_f = tf.contrib.rnn.DropoutWrapper(e_cell_f,
                 input_keep_prob=e_keep_prob, output_keep_prob=e_keep_prob)
-        #### We are not using recurrent dropout, but it is a common enough feature of networks that it's good to see how it is done.
         # Recurrent dropout options
+        #### We are not using recurrent dropout, but it is a common enough feature of networks that it's good to see how it is done.
         #        variational_recurrent=True, dtype=tf.float32,
         #        input_size=DIM_EMBEDDING)
         #### Similarly, multi-layer networks are a common use case. In Tensorflow, we would wrap a list of cells with a MultiRNNCell.
         # Multi-layer cell creation
         # e_cell_f = tf.contrib.rnn.MultiRNNCell([e_cell_f])
-        #### We are making a bidirectional network, so we need another cell for the reverse direction
+        #### We are making a bidirectional network, so we need another cell for the reverse direction.
         e_cell_b = tf.contrib.rnn.BasicLSTMCell(LSTM_HIDDEN)
         e_cell_b = tf.contrib.rnn.DropoutWrapper(e_cell_b,
                 input_keep_prob=e_keep_prob, output_keep_prob=e_keep_prob)
@@ -146,25 +146,24 @@ def main():
                 sequence_length=e_lengths, dtype=tf.float32)
         e_lstm_outputs_merged = tf.concat(e_lstm_outputs, 2)
 
-        #### Matrix multiply to get scores for each class
         # Define output layer
+        #### Matrix multiply to get scores for each class.
         e_predictions = tf.contrib.layers.fully_connected(e_lstm_outputs_merged,
                 NTAGS, activation_fn=None)
-        #### Cross-entropy loss. The reduction flag is crucial (the default is to average over the sequence). The weights flag accounts for padding that makes all of the sequences the same length.
         # Define loss and update
+        #### Cross-entropy loss. The reduction flag is crucial (the default is to average over the sequence). The weights flag accounts for padding that makes all of the sequences the same length.
         e_loss = tf.losses.sparse_softmax_cross_entropy(e_gold_output,
                 e_predictions, weights=e_mask,
                 reduction=tf.losses.Reduction.SUM)
         e_train = tf.train.GradientDescentOptimizer(e_learning_rate).minimize(e_loss)
-        #### If we wanted to do gradient clipping we would need to do the update in a few steps, first calculating the gradient, then modifying it before applying it.
         # Update with gradient clipping
+        #### If we wanted to do gradient clipping we would need to do the update in a few steps, first calculating the gradient, then modifying it before applying it.
         # e_optimiser = tf.train.GradientDescentOptimizer(LEARNING_RATE)
         # e_gradients = e_optimiser.compute_gradients(e_loss)
         # e_clipped_gradients = [(tf.clip_by_value(grad, -5., 5.), var)
         #         for grad, var in e_gradients]
         # e_train = e_optimiser.apply_gradients(e_gradients)
 
-        #### Get the predicted label
         # Define output
         e_auto_output = tf.argmax(e_predictions, 2, output_type=tf.int32)
 
@@ -214,7 +213,7 @@ def main():
                     False)
             print("Test Accuracy: {:.3f}".format(test_acc))
 
-#### Inference (the same function for train and test)
+#### Inference (the same function for train and test).
 def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
     e_auto_output, e_gold_output, e_input, e_keep_prob, e_lengths, e_loss, \
             e_train, e_mask, e_learning_rate, session = expressions
@@ -245,10 +244,11 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train, lr=0.0):
         output_array = np.zeros([len(batch), max_length])
         lengths = np.array([len(v[0]) for v in batch])
         mask = np.zeros([len(batch), max_length])
+        #### Convert tokens and tags from strings to numbers using the indices.
         for n, (tokens, tags) in enumerate(batch):
-            #### Using the indices we map our strings to numbers.
             token_ids = [token_to_id.get(simplify_token(t), 0) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
+
             #### Fill the arrays, leaving the remaining values as zero (our padding value).
             input_array[n, :len(tokens)] = token_ids
             output_array[n, :len(tags)] = tag_ids

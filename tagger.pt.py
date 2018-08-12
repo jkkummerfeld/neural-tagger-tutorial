@@ -19,7 +19,7 @@ KEEP_PROB = 0.5 # KEEP_PROB - probability of keeping a value when applying dropo
 GLOVE = "../data/glove.6B.100d.txt" # GLOVE - location of glove vectors.
 WEIGHT_DECAY = 1e-8 # WEIGHT_DECAY - part of a rescaling of weights when an update occurs.
 
-#### PyTorch library import
+#### PyTorch library import.
 import torch
 torch.manual_seed(0)
 
@@ -149,7 +149,7 @@ def main():
 
 #### Neural network definition code. In PyTorch networks are defined using classes that extend Module.
 class TaggerModel(torch.nn.Module):
-    #### In the constructor we define objects that will do each of the computations
+    #### In the constructor we define objects that will do each of the computations.
     def __init__(self, nwords, ntags, pretrained_list, id_to_token):
         super().__init__()
 
@@ -200,7 +200,7 @@ class TaggerModel(torch.nn.Module):
         predicted_tags = predicted_tags.view(cur_batch_size, max_length)
         return loss, predicted_tags
 
-#### Inference (the same function for train and test)
+#### Inference (the same function for train and test).
 def do_pass(data, token_to_id, tag_to_id, expressions, train):
     model, optimizer = expressions
 
@@ -227,9 +227,8 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train):
         lengths = [len(v[0]) for v in batch]
         input_array = torch.zeros((cur_batch_size, max_length)).long()
         output_array = torch.zeros((cur_batch_size, max_length)).long()
-        #### Convert tokens and tags from strings to numbers using the indices
+        #### Convert tokens and tags from strings to numbers using the indices.
         for n, (tokens, tags) in enumerate(batch):
-            #### Using the indices we map our strings to numbers.
             token_ids = [token_to_id.get(simplify_token(t), 0) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]
 

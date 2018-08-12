@@ -293,25 +293,23 @@ Making this helped me understand all three frameworks better. Hopefully you will
 <span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">100</span> 
 <span class="n">KEEP_PROB</span> <span class="o">=</span> <span class="mf">0.5</span> 
 <span class="n">GLOVE</span> <span class="o">=</span> <span class="s2">&quot;../data/glove.6B.100d.txt&quot;</span> 
-<span class="c1"># WEIGHT_DECAY = 1e-8 See note at the bottom of the page</span>
+<span class="c1"># WEIGHT_DECAY = 1e-8 Not used, see note at the bottom of the page</span>
 
 </pre></code></div>
 <div class="outer dynet">
-<span class="description dynet">DyNet specific imports
-<br />
-The first allows us to configure DyNet from within code rather than on the command line:  mem is the amount of system memory initially allocated (DyNet has its own memory management), autobatch toggles automatic parallelisation of computations, weight_decay rescales weights by (1 - decay) after every update, random_seed sets the seed for random number generation.<br /><br /></span><code class="dynet"><pre><span></span><span class="kn">import</span> <span class="nn">dynet_config</span>
+<span class="description dynet">Dynet library imports. The first allows us to configure DyNet from within code rather than on the command line: mem is the amount of system memory initially allocated (DyNet has its own memory management), autobatch toggles automatic parallelisation of computations, weight_decay rescales weights by (1 - decay) after every update, random_seed sets the seed for random number generation.<br /><br /></span><code class="dynet"><pre><span></span><span class="kn">import</span> <span class="nn">dynet_config</span>
 <span class="n">dynet_config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">mem</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">autobatch</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="n">WEIGHT_DECAY</span><span class="p">,</span><span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="c1"># dynet_config.set_gpu() for when we want to run with GPUs</span>
 <span class="kn">import</span> <span class="nn">dynet</span> <span class="kn">as</span> <span class="nn">dy</span>
 
 </pre></code><code class="pytorch">&nbsp;</code><code class="tensorflow">&nbsp;</code></div>
 <div class="outer pytorch">
-<span class="description pytorch">PyTorch library import<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="description pytorch">PyTorch library import.<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
 <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 </pre></code><code class="tensorflow">&nbsp;</code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">Tensorflow library import<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><pre><span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="kn">as</span> <span class="nn">tf</span>
+<span class="description tensorflow">Tensorflow library import.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><pre><span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="kn">as</span> <span class="nn">tf</span>
 
 </pre></code></div>
 <div class="outer shared-content">
@@ -632,7 +630,7 @@ This line creates a new graph and makes it the default graph for operations to b
 </pre></div>
 </code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">Placeholders are inputs/values that will be fed into the network each time it is run. We define their type, name, and shape (constant, 1D vector, 2D vector, etc). This includes what we normally think of as inputs (e.g. the tokens) as well as parameters we want to change at run time (e.g. the learning rate).<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><pre><span></span>        <span class="c1"># Define inputs</span>
+<span class="description tensorflow">Placeholders are inputs/values that will be fed into the network each time it is run. We define their type, name, and shape (constant, 1D vector, 2D vector, etc). This includes what we normally think of as inputs (e.g. the tokens) as well as parameters we want to change at run time (e.g. the learning rate).<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Define inputs</span>
         <span class="n">e_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;input&#39;</span><span class="p">)</span>
         <span class="n">e_lengths</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lengths&#39;</span><span class="p">)</span>
         <span class="n">e_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mask&#39;</span><span class="p">)</span>
@@ -641,25 +639,27 @@ This line creates a new graph and makes it the default graph for operations to b
         <span class="n">e_keep_prob</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;keep_prob&#39;</span><span class="p">)</span>
         <span class="n">e_learning_rate</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">)</span>
 
-</pre></code></div>
+        <span class="c1"># Define word embedding</span>
+</pre></div>
+</code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">The embedding matrix is a variable (so they can shift in training), initialized with the vectors defined above.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><pre><span></span>        <span class="c1"># Define word embedding</span>
-        <span class="n">glove_init</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pretrained_list</span><span class="p">))</span>
+<span class="description tensorflow">The embedding matrix is a variable (so they can shift in training), initialized with the vectors defined above.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">glove_init</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pretrained_list</span><span class="p">))</span>
         <span class="n">e_embedding</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span><span class="s2">&quot;embedding&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">NWORDS</span><span class="p">,</span> <span class="n">DIM_EMBEDDING</span><span class="p">],</span>
                 <span class="n">initializer</span><span class="o">=</span><span class="n">glove_init</span><span class="p">)</span>
         <span class="n">e_embed</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="n">e_embedding</span><span class="p">,</span> <span class="n">e_input</span><span class="p">)</span>
 
-</pre></code></div>
-<div class="outer tensorflow">
-<span class="description tensorflow">We create an LSTM cell, then wrap it in a class that applies dropout to the input and output.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Define LSTM cells</span>
-        <span class="n">e_cell_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">BasicLSTMCell</span><span class="p">(</span><span class="n">LSTM_HIDDEN</span><span class="p">)</span>
-        <span class="n">e_cell_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">DropoutWrapper</span><span class="p">(</span><span class="n">e_cell_f</span><span class="p">,</span>
-                <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">e_keep_prob</span><span class="p">,</span> <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">e_keep_prob</span><span class="p">)</span>
+        <span class="c1"># Define LSTM cells</span>
 </pre></div>
 </code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">We are not using recurrent dropout, but it is a common enough feature of networks that it's good to see how it is done.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Recurrent dropout options</span>
-        <span class="c1">#        variational_recurrent=True, dtype=tf.float32,</span>
+<span class="description tensorflow">We create an LSTM cell, then wrap it in a class that applies dropout to the input and output.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">e_cell_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">BasicLSTMCell</span><span class="p">(</span><span class="n">LSTM_HIDDEN</span><span class="p">)</span>
+        <span class="n">e_cell_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">DropoutWrapper</span><span class="p">(</span><span class="n">e_cell_f</span><span class="p">,</span>
+                <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">e_keep_prob</span><span class="p">,</span> <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">e_keep_prob</span><span class="p">)</span>
+        <span class="c1"># Recurrent dropout options</span>
+</pre></div>
+</code></div>
+<div class="outer tensorflow">
+<span class="description tensorflow">We are not using recurrent dropout, but it is a common enough feature of networks that it's good to see how it is done.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1">#        variational_recurrent=True, dtype=tf.float32,</span>
         <span class="c1">#        input_size=DIM_EMBEDDING)</span>
 </pre></div>
 </code></div>
@@ -669,13 +669,13 @@ This line creates a new graph and makes it the default graph for operations to b
 </pre></div>
 </code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">We are making a bidirectional network, so we need another cell for the reverse direction<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">e_cell_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">BasicLSTMCell</span><span class="p">(</span><span class="n">LSTM_HIDDEN</span><span class="p">)</span>
+<span class="description tensorflow">We are making a bidirectional network, so we need another cell for the reverse direction.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">e_cell_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">BasicLSTMCell</span><span class="p">(</span><span class="n">LSTM_HIDDEN</span><span class="p">)</span>
         <span class="n">e_cell_b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">DropoutWrapper</span><span class="p">(</span><span class="n">e_cell_b</span><span class="p">,</span>
                 <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">e_keep_prob</span><span class="p">,</span> <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">e_keep_prob</span><span class="p">)</span>
 </pre></div>
 </code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">To use the cells we create a dynamic RNN. The 'dynamic' aspect means we can feed in the lengths of input sequences not counting padding and it will stop early.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><pre><span></span>        <span class="n">e_initial_state_f</span> <span class="o">=</span> <span class="n">e_cell_f</span><span class="o">.</span><span class="n">zero_state</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="description tensorflow">To use the cells we create a dynamic RNN. The 'dynamic' aspect means we can feed in the lengths of input sequences not counting padding and it will stop early.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">e_initial_state_f</span> <span class="o">=</span> <span class="n">e_cell_f</span><span class="o">.</span><span class="n">zero_state</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">e_initial_state_b</span> <span class="o">=</span> <span class="n">e_cell_f</span><span class="o">.</span><span class="n">zero_state</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">e_lstm_outputs</span><span class="p">,</span> <span class="n">e_final_state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bidirectional_dynamic_rnn</span><span class="p">(</span>
                 <span class="n">cell_fw</span><span class="o">=</span><span class="n">e_cell_f</span><span class="p">,</span> <span class="n">cell_bw</span><span class="o">=</span><span class="n">e_cell_b</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">e_embed</span><span class="p">,</span>
@@ -684,32 +684,31 @@ This line creates a new graph and makes it the default graph for operations to b
                 <span class="n">sequence_length</span><span class="o">=</span><span class="n">e_lengths</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">e_lstm_outputs_merged</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">e_lstm_outputs</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
-</pre></code></div>
-<div class="outer tensorflow">
-<span class="description tensorflow">Matrix multiply to get scores for each class<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Define output layer</span>
-        <span class="n">e_predictions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">fully_connected</span><span class="p">(</span><span class="n">e_lstm_outputs_merged</span><span class="p">,</span>
-                <span class="n">NTAGS</span><span class="p">,</span> <span class="n">activation_fn</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="c1"># Define output layer</span>
 </pre></div>
 </code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">Cross-entropy loss. The reduction flag is crucial (the default is to average over the sequence). The weights flag accounts for padding that makes all of the sequences the same length.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Define loss and update</span>
-        <span class="n">e_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">sparse_softmax_cross_entropy</span><span class="p">(</span><span class="n">e_gold_output</span><span class="p">,</span>
+<span class="description tensorflow">Matrix multiply to get scores for each class.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">e_predictions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">fully_connected</span><span class="p">(</span><span class="n">e_lstm_outputs_merged</span><span class="p">,</span>
+                <span class="n">NTAGS</span><span class="p">,</span> <span class="n">activation_fn</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="c1"># Define loss and update</span>
+</pre></div>
+</code></div>
+<div class="outer tensorflow">
+<span class="description tensorflow">Cross-entropy loss. The reduction flag is crucial (the default is to average over the sequence). The weights flag accounts for padding that makes all of the sequences the same length.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">e_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">sparse_softmax_cross_entropy</span><span class="p">(</span><span class="n">e_gold_output</span><span class="p">,</span>
                 <span class="n">e_predictions</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">e_mask</span><span class="p">,</span>
                 <span class="n">reduction</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">Reduction</span><span class="o">.</span><span class="n">SUM</span><span class="p">)</span>
         <span class="n">e_train</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">GradientDescentOptimizer</span><span class="p">(</span><span class="n">e_learning_rate</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">e_loss</span><span class="p">)</span>
+        <span class="c1"># Update with gradient clipping</span>
 </pre></div>
 </code></div>
 <div class="outer tensorflow">
-<span class="description tensorflow">If we wanted to do gradient clipping we would need to do the update in a few steps, first calculating the gradient, then modifying it before applying it.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><pre><span></span>        <span class="c1"># Update with gradient clipping</span>
-        <span class="c1"># e_optimiser = tf.train.GradientDescentOptimizer(LEARNING_RATE)</span>
+<span class="description tensorflow">If we wanted to do gradient clipping we would need to do the update in a few steps, first calculating the gradient, then modifying it before applying it.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># e_optimiser = tf.train.GradientDescentOptimizer(LEARNING_RATE)</span>
         <span class="c1"># e_gradients = e_optimiser.compute_gradients(e_loss)</span>
         <span class="c1"># e_clipped_gradients = [(tf.clip_by_value(grad, -5., 5.), var)</span>
         <span class="c1">#         for grad, var in e_gradients]</span>
         <span class="c1"># e_train = e_optimiser.apply_gradients(e_gradients)</span>
 
-</pre></code></div>
-<div class="outer tensorflow">
-<span class="description tensorflow">Get the predicted label<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Define output</span>
+        <span class="c1"># Define output</span>
         <span class="n">e_auto_output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">e_predictions</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
         <span class="c1"># Do training</span>
@@ -843,7 +842,7 @@ This line creates a new graph and makes it the default graph for operations to b
 </pre></div>
 </code><code class="tensorflow">&nbsp;</code></div>
 <div class="outer pytorch">
-<span class="description pytorch">In the constructor we define objects that will do each of the computations<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><div class="source"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nwords</span><span class="p">,</span> <span class="n">ntags</span><span class="p">,</span> <span class="n">pretrained_list</span><span class="p">,</span> <span class="n">id_to_token</span><span class="p">):</span>
+<span class="description pytorch">In the constructor we define objects that will do each of the computations.<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><div class="source"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nwords</span><span class="p">,</span> <span class="n">ntags</span><span class="p">,</span> <span class="n">pretrained_list</span><span class="p">,</span> <span class="n">id_to_token</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="c1"># Create word embeddings</span>
@@ -907,7 +906,7 @@ This line creates a new graph and makes it the default graph for operations to b
 
 </pre></code><code class="tensorflow">&nbsp;</code></div>
 <div class="outer shared-content">
-<span class="description shared-content">Inference (the same function for train and test)<br /><br /></span><code class="dynet"><div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">):</span>
+<span class="description shared-content">Inference (the same function for train and test).<br /><br /></span><code class="dynet"><div class="source"><pre><span></span><span class="k">def</span> <span class="nf">do_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">token_to_id</span><span class="p">,</span> <span class="n">tag_to_id</span><span class="p">,</span> <span class="n">expressions</span><span class="p">,</span> <span class="n">train</span><span class="p">):</span>
     <span class="n">pEmbedding</span><span class="p">,</span> <span class="n">pOutput</span><span class="p">,</span> <span class="n">f_lstm</span><span class="p">,</span> <span class="n">b_lstm</span><span class="p">,</span> <span class="n">trainer</span> <span class="o">=</span> <span class="n">expressions</span>
 
     <span class="c1"># Loop over batches</span>
@@ -977,12 +976,49 @@ This line creates a new graph and makes it the default graph for operations to b
         <span class="n">predicted</span> <span class="o">=</span> <span class="p">[]</span>
 </pre></div>
 </code><code class="pytorch">&nbsp;</code><code class="tensorflow">&nbsp;</code></div>
-<div class="outer dynet">
-<span class="description dynet">Convert tokens and tags from strings to numbers using the indices<br /><br /></span><code class="dynet"><pre><span></span>        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+<div class="outer shared-content">
+<span class="description shared-content">&nbsp;</span><code class="dynet">&nbsp;</code><code class="pytorch"><div class="source"><pre><span></span>        <span class="c1"># Prepare inputs</span>
+</pre></div>
+</code><code class="tensorflow">&nbsp;</code></div>
+<div class="outer pytorch">
+<span class="description pytorch">Prepare input arrays, using .long() to cast the type from Tensor to LongTensor.<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><div class="source"><pre><span></span>        <span class="n">cur_batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">]</span>
+        <span class="n">input_array</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">cur_batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">))</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+        <span class="n">output_array</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">cur_batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">))</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+</pre></div>
+</code><code class="tensorflow">&nbsp;</code></div>
+<div class="outer shared-content">
+<span class="description shared-content">&nbsp;</span><code class="dynet">&nbsp;</code><code class="pytorch">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Add empty sentences to fill the batch</span>
+</pre></div>
+</code></div>
+<div class="outer tensorflow">
+<span class="description tensorflow">We add empty sentences because Tensorflow requires every batch to be the same size.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">batch</span> <span class="o">+=</span> <span class="p">[([],</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">BATCH_SIZE</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">))]</span>
+        <span class="c1"># Prepare inputs</span>
+</pre></div>
+</code></div>
+<div class="outer tensorflow">
+<span class="description tensorflow">We do this here for convenience and to have greater alignment between implementations, but in practise it would be best to do this once in pre-processing.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">input_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span> <span class="n">max_length</span><span class="p">])</span>
+        <span class="n">output_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span> <span class="n">max_length</span><span class="p">])</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span> <span class="n">max_length</span><span class="p">])</span>
+</pre></div>
+</code></div>
+<div class="outer shared-content">
+<span class="description shared-content">Convert tokens and tags from strings to numbers using the indices.<br /><br /></span><code class="dynet"><pre><span></span>        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
             <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
             <span class="n">tag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_to_id</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
 
-</pre></code><code class="pytorch">&nbsp;</code><code class="tensorflow">&nbsp;</code></div>
+</pre></code><code class="pytorch"><pre><span></span>        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
+            <span class="n">tag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_to_id</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
+
+</pre></code><code class="tensorflow"><pre><span></span>        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
+            <span class="n">tag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_to_id</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
+
+</pre></code></div>
 <div class="outer dynet">
 <span class="description dynet">Now we define the computation to be performed with the model. Note that they are not applied yet, we are simply building the computation graph.<br /><br /></span><code class="dynet"><div class="source"><pre><span></span>            <span class="c1"># Look up word embeddings</span>
             <span class="n">wembs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dy</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">pEmbedding</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">token_ids</span><span class="p">]</span>
@@ -1034,27 +1070,6 @@ We pull out the output vector from the cell state at each step.<br /><br /></spa
             <span class="n">loss</span> <span class="o">+=</span> <span class="n">loss_for_batch</span><span class="o">.</span><span class="n">scalar_value</span><span class="p">()</span>
 
 </pre></code><code class="pytorch">&nbsp;</code><code class="tensorflow">&nbsp;</code></div>
-<div class="outer shared-content">
-<span class="description shared-content">&nbsp;</span><code class="dynet">&nbsp;</code><code class="pytorch"><div class="source"><pre><span></span>        <span class="c1"># Prepare inputs</span>
-</pre></div>
-</code><code class="tensorflow">&nbsp;</code></div>
-<div class="outer pytorch">
-<span class="description pytorch">Prepare input arrays, using .long() to cast the type from Tensor to LongTensor.<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><div class="source"><pre><span></span>        <span class="n">cur_batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
-        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">]</span>
-        <span class="n">input_array</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">cur_batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">))</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
-        <span class="n">output_array</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">cur_batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">))</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
-</pre></div>
-</code><code class="tensorflow">&nbsp;</code></div>
-<div class="outer pytorch">
-<span class="description pytorch">Convert tokens and tags from strings to numbers using the indices<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><div class="source"><pre><span></span>        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
-</pre></div>
-</code><code class="tensorflow">&nbsp;</code></div>
-<div class="outer pytorch">
-<span class="description pytorch">Using the indices we map our strings to numbers.<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><pre><span></span>            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
-            <span class="n">tag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_to_id</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
-
-</pre></code><code class="tensorflow">&nbsp;</code></div>
 <div class="outer pytorch">
 <span class="description pytorch">Fill the arrays, leaving the remaining values as zero (our padding value).<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><div class="source"><pre><span></span>            <span class="n">input_array</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span>
             <span class="n">output_array</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">tags</span><span class="p">)]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">(</span><span class="n">tag_ids</span><span class="p">)</span>
@@ -1081,29 +1096,6 @@ We pull out the output vector from the cell state at each step.<br /><br /></spa
 <span class="description pytorch">Our output is an array (rather than a single value), so we use a different approach to get it into a usable form.<br /><br /></span><code class="dynet pytorch-line">&nbsp;</code><code class="pytorch"><pre><span></span>        <span class="n">predicted</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
 </pre></code><code class="tensorflow">&nbsp;</code></div>
-<div class="outer shared-content">
-<span class="description shared-content">&nbsp;</span><code class="dynet">&nbsp;</code><code class="pytorch">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="c1"># Add empty sentences to fill the batch</span>
-</pre></div>
-</code></div>
-<div class="outer tensorflow">
-<span class="description tensorflow">We add empty sentences because Tensorflow requires every batch to be the same size.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">batch</span> <span class="o">+=</span> <span class="p">[([],</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">BATCH_SIZE</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">))]</span>
-        <span class="c1"># Prepare inputs</span>
-</pre></div>
-</code></div>
-<div class="outer tensorflow">
-<span class="description tensorflow">We do this here for convenience and to have greater alignment between implementations, but in practise it would be best to do this once in pre-processing.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">input_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span> <span class="n">max_length</span><span class="p">])</span>
-        <span class="n">output_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span> <span class="n">max_length</span><span class="p">])</span>
-        <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span> <span class="n">max_length</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
-</pre></div>
-</code></div>
-<div class="outer tensorflow">
-<span class="description tensorflow">Using the indices we map our strings to numbers.<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>            <span class="n">token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">token_to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">simplify_token</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
-            <span class="n">tag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_to_id</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
-</pre></div>
-</code></div>
 <div class="outer tensorflow">
 <span class="description tensorflow">Fill the arrays, leaving the remaining values as zero (our padding value).<br /><br /></span><code class="dynet tensorflow-line">&nbsp;</code><code class="pytorch tensorflow-line">&nbsp;</code><code class="tensorflow"><div class="source"><pre><span></span>            <span class="n">input_array</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)]</span> <span class="o">=</span> <span class="n">token_ids</span>
             <span class="n">output_array</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">tags</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tag_ids</span>

@@ -19,8 +19,7 @@ KEEP_PROB = 0.5 # KEEP_PROB - probability of keeping a value when applying dropo
 GLOVE = "../data/glove.6B.100d.txt" # GLOVE - location of glove vectors.
 WEIGHT_DECAY = 1e-8 # WEIGHT_DECAY - part of a rescaling of weights when an update occurs.
 
-#### DyNet specific imports
-#### The first allows us to configure DyNet from within code rather than on the command line:  mem is the amount of system memory initially allocated (DyNet has its own memory management), autobatch toggles automatic parallelisation of computations, weight_decay rescales weights by (1 - decay) after every update, random_seed sets the seed for random number generation.
+#### Dynet library imports. The first allows us to configure DyNet from within code rather than on the command line: mem is the amount of system memory initially allocated (DyNet has its own memory management), autobatch toggles automatic parallelisation of computations, weight_decay rescales weights by (1 - decay) after every update, random_seed sets the seed for random number generation.
 import dynet_config
 dynet_config.set(mem=256, autobatch=0, weight_decay=WEIGHT_DECAY,random_seed=0)
 # dynet_config.set_gpu() for when we want to run with GPUs
@@ -172,7 +171,7 @@ def main():
     _, test_acc = do_pass(dev, token_to_id, tag_to_id, expressions, False)
     print("Test Accuracy: {:.3f}".format(test_acc))
 
-#### Inference (the same function for train and test)
+#### Inference (the same function for train and test).
 def do_pass(data, token_to_id, tag_to_id, expressions, train):
     pEmbedding, pOutput, f_lstm, b_lstm, trainer = expressions
 
@@ -197,7 +196,7 @@ def do_pass(data, token_to_id, tag_to_id, expressions, train):
         #### For each example, we will construct an expression that gives the loss.
         loss_expressions = []
         predicted = []
-        #### Convert tokens and tags from strings to numbers using the indices
+        #### Convert tokens and tags from strings to numbers using the indices.
         for n, (tokens, tags) in enumerate(batch):
             token_ids = [token_to_id.get(simplify_token(t), 0) for t in tokens]
             tag_ids = [tag_to_id[t] for t in tags]

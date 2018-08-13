@@ -549,6 +549,7 @@ head = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
 <body>
 <div class="header-outer">
 <h1>Implementing a neural Part-of-Speech tagger</h1>
+<h3>by Jonathan K. Kummerfeld <a href="https://www.jkk.name/">[site]</a></h3>
 <div class=header>
 <p>
 DyNet, PyTorch and Tensorflow are complex frameworks with different ways of approaching neural network implementation and variations in default behaviour.

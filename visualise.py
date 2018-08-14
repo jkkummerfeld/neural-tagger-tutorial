@@ -691,6 +691,10 @@ function toggleAll() {
 <div class="header-outer">
 <div class="header">
 <p>
+This code was last updated in August 2018.
+If one of the frameworks has changed in a way that should be reflected here, please let me know!
+</p>
+<p>
 A few miscellaneous notes:
 <ul>
     <li>PyTorch 0.4 does not support recurrent dropout directly. For an example of how to achieve it, see the LSTM and QRNN Language Model Toolkit's <a href="https://github.com/salesforce/awd-lstm-lm/blob/28683b20154fce8e5812aeb6403e35010348c3ea/weight_drop.py">WeightDrop class</a> and <a href="https://github.com/salesforce/awd-lstm-lm/blob/457a422eb46e970a6aad659ca815a04b3d074d6c/model.py#L22">how it is used</a>.</li>

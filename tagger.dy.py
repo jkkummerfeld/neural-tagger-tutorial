@@ -154,8 +154,7 @@ def main():
         trainer.learning_rate = LEARNING_RATE / (1+ LEARNING_DECAY_RATE * epoch)
 
         #### Training pass.
-        loss, tacc = do_pass(train, token_to_id, tag_to_id, expressions, True,
-                current_lr)
+        loss, tacc = do_pass(train, token_to_id, tag_to_id, expressions, True)
         #### Dev pass.
         _, dacc = do_pass(dev, token_to_id, tag_to_id, expressions, False)
         print("{} loss {} t-acc {} d-acc {}".format(epoch, loss, tacc, dacc))

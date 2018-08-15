@@ -204,18 +204,17 @@ class TaggerModel(torch.nn.Module):
 def do_pass(data, token_to_id, tag_to_id, expressions, train):
     model, optimizer = expressions
 
+
     # Loop over batches
     loss = 0
     match = 0
     total = 0
-    start = 0
-    while start < len(data):
+    for start in range(0, len(data), BATCH_SIZE):
         #### Form the batch and order it based on length (important for efficient processing in PyTorch).
         batch = data[start : start + BATCH_SIZE]
         batch.sort(key = lambda x: -len(x[0]))
-        start += BATCH_SIZE
         #### Log partial results so we can conveniently check progress.
-        if start % 4000 == 0:
+        if start % 4000 == 0 and start > 0:
             print(loss, match / total)
             sys.stdout.flush()
 

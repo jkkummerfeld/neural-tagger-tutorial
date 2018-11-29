@@ -702,6 +702,12 @@ A few miscellaneous notes:
 </ul>
 </p>
 <p>
+And a few other gotchas I've come across:
+<ul>
+    <li>For PyTorch, consider running your code with these two environment variables set: "OMP_NUM_THREADS=1 and MKL_NUM_THREADS=1". The reason is that they prevent unnecessary thread creation by low-level matrix manipulation libraries. See <a href="https://twitter.com/honnibal/status/1067920534585917440">this twitter thread</a> for discussion.</li>
+</ul>
+</p>
+<p>
 I developed this code and webpage with help from many people and resources. In particular:
 <ul>
     <li> Feedback from <a href="http://proebsting.cs.arizona.edu/">Todd Proebsting</a>, <a href="http://www.it.usyd.edu.au/~judy/">Judy Kay</a>, <a href="http://www.it.usyd.edu.au/~bob/">Bob Kummerfeld</a>, and members of the <a href="http://web.eecs.umich.edu/~wlasecki/croma.html">CROMA Lab</a>.</li>

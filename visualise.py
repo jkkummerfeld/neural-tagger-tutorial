@@ -572,6 +572,9 @@ Matching or closely related content is aligned.
 Framework-specific comments are highlighted in a colour that matches their button and a line is used to make the link from the comment to the code clear.
 </p>
 <p>
+<span class="paragraph-start">New (2019) Runnable Version:</span> I have made a slightly modified version of this code available as a <a href="https://colab.research.google.com/drive/1z5oU0ZkYMOMH4R_JGGLs0e06YXv6AdO-">Google Colaboratory Notebook</a>.
+</p>
+<p>
 Making this helped me understand all three frameworks better. Hopefully you will find it informative too!
 </p>
 
